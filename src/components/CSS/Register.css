@@ -1,0 +1,225 @@
+.register-page {
+    padding: 20px;
+    font-family: kanit;
+    border-radius: 5px;
+    /* margin-bottom: 100px; */
+}
+
+.register-page h3 {
+    text-align: center;
+    font-weight: bold;
+}
+
+.register-box {
+    border-radius: inherit;
+}
+
+.register-box h5 {
+    color: #757575;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.input-icons {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 50px;
+    background-color: #f8f8f8;
+    border: 1px solid #ccc;
+}
+
+.icon {
+    position: absolute;
+    padding: 10px;
+    width: 40px;
+    top: 50%;
+    left: 10px;
+    transform: translate(0%, -50%);
+}
+
+.input-icons .form-control  {
+    flex: 1;
+    border: none;
+    outline: none;
+    border-radius: 50px;
+    padding-left: 55px;
+    font-size: 1rem;
+    border: solid 2px rgb(244, 154, 106);
+}
+
+/* .form-select{
+    position: relative;
+    padding: 0.65rem 0.75rem;
+    color: #515151;
+    display: flex;
+    border-radius: 50px;
+    background-color: #f8f8f8;
+    border: solid 2px rgb(244, 154, 106);
+    padding-left: 30px;
+} */
+
+/* .center-button {
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+    margin-bottom: 50px;
+} */
+
+.next {
+    color: #fff;
+    background: linear-gradient(130deg, rgba(242, 112, 114, 1) 0%, rgba(248, 158, 90, 1) 100%);
+    line-height: 200%;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 25px;
+    color: #fff;
+    display: block;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.next:hover {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(248, 47, 49, 1) 0%, rgba(254, 160, 64, 1) 200%);
+}
+/* .btn-regis {
+    color: #ccc;
+    text-decoration: none;
+    margin: 0px 20px;
+    line-height: 200%;
+    padding: 8px 15px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+} */
+
+.btn-regis.active {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(248, 47, 49, 1) 0%, rgba(254, 160, 64, 1) 200%);
+    line-height: 200%;
+    padding: 8px 15px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-regis:hover {
+    color: #fff;
+    background: linear-gradient(90deg, rgba(248, 47, 49, 1) 0%, rgba(254, 160, 64, 1) 200%);
+}
+
+.tel-des {
+    color: #757575;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.required-asterisk {
+    position: absolute;
+    left: -10px;
+    top: -5px;
+    color: red;
+    font-weight: bold;
+}
+
+.input-icons {
+    position: relative;
+}
+
+
+.form-outline-idol {
+    padding-left: 50px;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+}
+
+.register-page .form-control {
+    line-height: 2.5;
+}
+
+.regis-botton-group {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.brand-hiligh {
+    color: #f77b00;
+}
+
+.register-term {
+    text-decoration: none;
+    color: #fea040;
+}
+
+.step1,
+.step2,
+.step3,
+.step4,
+.regis-action {
+    display: none;
+}
+
+.step1.active,
+.step2.active,
+.step3.active,
+.step4.active,
+.regis-action.active {
+    display: flex;
+}
+
+/* .center-button {
+    display: flex;
+    justify-content: center;
+} */
+
+#otp-no {
+    width: 100%;
+    text-align: center;
+}
+
+.register-logo-light {
+    width: 50%;
+    display: inline-block;
+}
+
+.register-logo-dark {
+    width: 50%;
+    display: none;
+}
+
+.forget-pass-txt {
+    text-decoration: none;
+    color: #000;
+    font-size: 0.9rem;
+}
+
+
+
+@media (max-width: 767px) {
+    .register-logo-light {
+        width: 80%;
+    }
+
+    .register-logo-dark {
+        width: 80%;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-logo-light {
+        width: 80%;
+    }
+
+    .register-logo-dark {
+        width: 80%;
+    }
+}
+
+.row .col-md-6:nth-child(2),
+.row .col-md-6:nth-child(4) {
+    margin-top: -20px;
+}

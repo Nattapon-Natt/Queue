@@ -1,0 +1,262 @@
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.profile-idol {
+  margin-top: 20px;
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-idol-box {
+  height: 0;
+  overflow: hidden;
+  padding-top: calc(560 / 640 * 100%);
+  background: white;
+  position: relative;
+  margin: 0 5px;
+  border-radius: 30px;
+  display: flex;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-idol-box:hover {
+  transform: translateY(-8px);
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.profile-idol-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: auto;
+  height: 100%;
+  transition: all 0.5s ease-in-out;
+}
+
+.col-lg-5 {
+  margin: 30px;
+}
+
+.idol-name {
+  width: 100%;
+  text-align: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.adv-word {
+  width: 100%;
+  text-align: left;
+  color: #808080;
+  font-size: 1.2rem;
+  margin: 10px 0;
+  display: block;
+}
+
+.location {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: space-evenly;
+}
+
+.location-row {
+  display: flex;
+  align-items: center;
+  /* margin-bottom: 10px; */
+}
+
+.location-row>* {
+  margin-right: 10px;
+}
+
+.pin {
+  height: 40px;
+  margin: 8px 0;
+  width: auto;
+  margin-right: 5px;
+}
+
+.des {
+  padding: 10px;
+  background: #fff;
+  display: flex;
+  position: relative;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+  text-decoration: none;
+  margin: 0 5px;
+  border: none;
+  font-size: 0.875rem;
+  transition: background-color 0.3s ease;
+  align-items: center;
+}
+
+.des:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+label {
+  max-width: 100%;
+  border-radius: 5px;
+  color: #333;
+  margin: 0;
+  display: flex;
+}
+
+.loc {
+  color: #000;
+  font-weight: bold;
+}
+
+.gender {
+  padding-inline: 10px;
+  width: 45px;
+  height: auto;
+  height: 18px;
+  margin-right: 5px;
+}
+
+.detail {
+  margin: 25px 0 10px 0;
+  font-size: 2rem;
+  color: #14a8e8;
+  font-weight: bold;
+}
+
+.sub-detail {
+  margin: 20px 0 10px 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+p {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.profile-idol .btn-talk {
+  background-color: #ff5700;
+  color: #fff;
+  width: 200px;
+  height: 50px;
+  font-size: x-large;
+  border-radius: 11px;
+  font-weight: 300;
+  opacity: .8;
+  margin-top: 30px;
+  transition: background-color 0.5s ease;
+}
+
+.profile-idol .btn-talk:hover {
+  background-color: #0056b3;
+  transform: translateY(-3px);
+  color: #fff;
+}
+
+.backto-home {
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  margin: 40px auto;
+  color: #000;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 10px 20px;
+  border-radius: 15px;
+  border: 2px #f88f5b solid;
+}
+
+.backto-home:hover {
+  background-color: #f88f5b;
+  color: #fff;
+}
+
+.backto-home img {
+  width: 20px;
+  transform: rotate(180deg);
+  height: 30px;
+  margin-right: 10px;
+}
+
+@media (max-width: 1200px) {
+  .profile-idol-box {
+    padding-top: calc(480 / 640 * 100%);
+  }
+
+  .idol-name {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-idol {
+    flex-direction: column;
+  }
+
+  .profile-idol-box {
+    margin-bottom: 20px;
+    padding-top: calc(400 / 640 * 100%);
+  }
+
+  .idol-name {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .adv-word {
+    text-align: center;
+  }
+
+  .location {
+    justify-content: center;
+  }
+
+  .btn-talk {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-idol-box {
+    padding-top: calc(320 / 640 * 100%);
+  }
+
+  .idol-name {
+    font-size: 1.5rem;
+  }
+
+  .adv-word,
+  .detail,
+  .sub-detail,
+  p {
+    font-size: 0.9rem;
+  }
+
+  .btn-talk {
+    padding: 8px 16px;
+    font-size: 1rem;
+  }
+
+  .backto-home {
+    font-size: 1rem;
+    padding: 8px 16px;
+  }
+}

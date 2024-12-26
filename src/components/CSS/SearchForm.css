@@ -1,0 +1,92 @@
+.search-form-holder {
+    border-radius: 20px;
+    padding: 20px;
+    margin: 50px 0px 50px 0px;
+    background-color: rgb(239 244 249);
+    font-family: kanit;
+}
+
+.home-search-header {
+    text-align: center;
+    color: #67679e;
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    position: relative;
+    align-items: center;
+}
+
+.input-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.form-label {
+    text-align: left;
+    position: absolute;
+    z-index: 1;
+    background-color: rgb(244 246 247);
+    color: #67679e;
+    font-size: 1rem;
+    top: -12px;
+    left: 2rem;
+    padding: 0 5px;
+}
+
+.input-box .form-control {
+    border: 2px solid #bbcdf7;
+    border-radius: 30px;
+    position: relative;
+    background-color: rgb(244 246 247);
+    padding: 0.65rem 0.75rem;
+}
+
+.input-box .form-select {
+    border: 2px solid #bbcdf7;
+    border-radius: 30px;
+    position: relative;
+    background-color: rgb(244 246 247);
+    padding: 0.65rem 0.75rem;
+    color: #515151;
+}
+
+.input-box .btn-idol-third {
+    color: #ffffff;
+    background: linear-gradient(90deg, rgba(243, 204, 224, 1) 20%, rgba(153, 203, 236, 1) 70%);
+    line-height: 250%;
+    border-radius: 50px;
+    font-size: 18px;
+    width: 50%;
+    margin :0 auto;
+}
+
+.idol-list-holder h1{
+    text-align: center;
+    font-family: kanit;
+}
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+        display: block;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .input-box {
+        width: auto;
+    }
+
+    .btn-idol-third {
+        margin :0 auto;
+        align-self: flex-end;
+
+    }
+}

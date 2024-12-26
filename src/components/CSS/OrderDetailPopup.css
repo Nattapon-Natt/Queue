@@ -1,0 +1,17 @@
+.popup {
+    display: none; /* ซ่อน popup ไว้ก่อน */
+    position: fixed;
+    z-index: 1000; /* ต้องมากกว่า z-index ของ element อื่นๆ */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.popup.open {
+    display: block; 
+}

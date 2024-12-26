@@ -1,0 +1,88 @@
+/* Order Card */
+.queue-body {
+    margin: 0 auto;
+    font-family: 'kanit';
+    color: #fff;
+    padding-top: 10rem;
+    justify-content: center;
+    text-align: center;
+}
+
+.queue-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #0a192f;
+    color: white;
+    font-family: 'kanit';
+    margin-top: 5rem;
+    height: 650px;
+    width: 100%;
+}
+
+.queue-section {
+    width: 48%;
+    background-color: #172a46;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.queue-section h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.queue-list {
+    padding: 10px;
+}
+
+.queue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #243b55;
+}
+
+.queue-item:last-child {
+    border-bottom: none;
+}
+
+.queue-info {
+    flex: 1;
+}
+
+.queue-name {
+    font-size: 1.2em;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.queue-order {
+    line-height: 1.5em;
+}
+
+.queue-order p {
+    margin: 0;
+    color: #fff;
+}
+
+.order-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.order-button-accepted {
+    background-color: #777;
+}
+
+.queue-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-right: 10px;
+    display: inline-block;
+}

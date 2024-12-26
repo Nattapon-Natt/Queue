@@ -1,0 +1,133 @@
+.home-idol {
+    background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px 50px 0px;
+    font-family: kanit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.home-idol:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.home-idol-box {
+    height: 0;
+    overflow: hidden;
+    padding-top: calc(650 / 640 * 100%);
+    background: white;
+    position: relative;
+    margin: 0 0px;
+    border-radius: 30px;
+    width: 100%;
+    max-width: 300px;
+    transform: translateY(-5px);
+}
+
+.home-idol-box img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: auto;
+    transition: all 0.5s ease-in-out;
+}
+
+.home-idol-des {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 1);
+    color: #000;
+    font-size: 1rem;
+    margin-bottom: 1px;
+    margin-top: 5px;
+    border-radius: 30px;
+    padding: 5px;
+}
+
+.des-location {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: space-evenly;
+    /* justify-content: space-between; */
+    margin-bottom: 10px;
+}
+
+.des-btn {
+    display: inline-block;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 5px;
+    text-decoration: none;
+    margin: 2px 5px;
+    border: none;
+    font-size: 0.875rem;
+    padding: 8px 12px;
+    transition: background-color 0.3s ease;
+}
+
+.des-btn:hover {
+    background-color: #ffb7e2;
+}
+
+.gender-icon {
+    width: 20px;
+    height: 16px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.main-loc {
+    font-size: 0.875rem;
+    margin: 0;
+    font-weight: bold;
+    color: #333;
+}
+
+.main-loc:hover {
+    color: #000000;
+}
+
+.des {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+    text-align: center;
+}
+
+.description p{
+    margin-top: 10px;
+}
+
+@media (max-width: 576px) {
+    .home-idol-des {
+        padding: 10px;
+    }
+
+    .des-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 auto;
+        width: 33.3333%;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-lg-3 {
+        flex: 0 0 auto;
+        width: 25%;
+    }
+}

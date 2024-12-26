@@ -1,0 +1,190 @@
+.reservation-container {
+    text-align: center;
+    font-family: 'kanit';
+    margin-top: 80px;
+}
+
+.reservation-container h1 {
+    font-weight: bold;
+}
+
+.first p {
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.first h2 {
+    font-weight: bold;
+}
+
+.reservation-box {
+    background: linear-gradient(145deg, #1d1b61, #492eb8);
+    padding-top: 30px;
+    border-radius: 20px;
+    display: inline-block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 5);
+    color: white;
+    text-align: center;
+    width: 850px;
+}
+
+.reservation-box ul {
+    list-style: none;
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+
+.reservation-box p {
+    color: azure;
+}
+
+.people-input {
+    width: 30%;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    text-align: center;
+    font-size: 16px;
+}
+
+.reserve-btn {
+    background: white;
+    color: #1d1b61;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    margin: 15px auto;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 30%;
+}
+
+.reserve-btn:hover,
+div button:hover {
+    background: #ffeb3b;
+    color: #1d1b61;
+    transition: 0.3s ease;
+}
+
+.arrow {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.sum-reservarion,
+.contact,
+.result-box {
+    margin: 10px auto;
+    border: none;
+    border-radius: 8px;
+    width: 90%;
+}
+
+.result-box p{
+    font-size: 1.2rem;
+}
+
+.sum-reservarion ul,
+.contact ul,
+.result-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sum-reservarion li,
+.contact li,
+.result-box li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.result-box li {
+    border: none;
+}
+
+.sum-reservarion li>p,
+.contact li>p,
+.result-box li>p {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+}
+
+.sum-reservarion li>p:first-child {
+    text-align: left;
+}
+
+.sum-reservarion li>p:last-child {
+    text-align: right;
+}
+
+.contact {
+    margin: 50px auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .reservation-title {
+        font-size: 28px;
+    }
+
+    .reservation-box {
+        width: 80%;
+        padding: 20px 15px;
+        margin: 0 auto;
+    }
+
+    .people-input {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .reserve-btn {
+        font-size: 14px;
+        padding: 8px 15px;
+    }
+
+    .arrow {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reservation-title {
+        font-size: 24px;
+    }
+
+    .reservation-box {
+        width: 90%;
+        padding: 15px 10px;
+        margin: 0 auto;
+    }
+
+    .people-input {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .reserve-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .arrow {
+        font-size: 14px;
+    }
+}

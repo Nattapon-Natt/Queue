@@ -1,0 +1,132 @@
+.cus-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: left;
+    font-family: 'kanit';
+    flex: 1;
+    padding-top: 100px;
+}
+
+.cus-title {
+    font-size: 2rem;
+    text-align: center;
+}
+
+.cus-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    justify-content: left;
+    flex: 1;
+    padding-left: 80px;
+}
+
+.cus-item {
+    width: 300px;
+    margin: 10px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.cus-item button {
+    margin: 5px;
+}
+
+.edit-cus {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.edit-cus:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+.delete-cus {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.delete-cus:hover {
+    background-color: #c82333;
+    color: white;
+}
+
+.cus-item form {
+    margin-top: 10px;
+    padding: 10px;
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    display: block;
+    /* flex-direction: column; */
+}
+
+.cus-item .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.cus-item .form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.cus-item .form-group input,
+.cus-item .form-group textarea {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.cus-item .button-container {
+    display: flex;
+    justify-content: center;
+}
+
+.cus-item .button-container button {
+    margin: 5px;
+}
+
+.save-btn {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.save-btn:hover {
+    background-color: #1e7e34;
+    color: white;
+}
+
+.cancel-btn {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.cancel-btn:hover {
+    background-color: #c82333;
+    color: white;
+}

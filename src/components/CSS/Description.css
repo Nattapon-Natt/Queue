@@ -1,0 +1,91 @@
+.des-info {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    font-family: 'kanit';
+    margin: 180.5px auto;
+}
+
+.des-info h2 {
+    margin: 0 0 15px;
+    font-weight: bold;
+}
+
+.des-info textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 100px;
+    resize: vertical;
+    margin: 20px 0;
+}
+
+label {
+    margin-bottom: 0;
+    font-weight: bold;
+    color: #555;
+    font-size: 25px;
+    flex: 1;
+}
+
+textarea:focus{
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+textarea::placeholder {
+    color: #aaa;
+}
+
+.edit-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 10px auto;
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    display: block;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.record {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.cancel {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .des-info {
+        padding: 15px;
+        max-width: 100%;
+    }
+
+    .des-info button {
+        width: 100%;
+    }
+}
