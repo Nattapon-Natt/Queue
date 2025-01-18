@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const uploadsDir = path.resolve(__dirname, 'uploads'); // ใช้ __dirname เพื่อความยืดหยุ่น แต่คุณอาจใช้ path สัมบูรณ์ได้
+const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
@@ -21,6 +21,7 @@ const db = mysql.createConnection({
     password: "",
     database: "queue"
 });
+
 
 const port = 8081;
 app.listen(port, () => {
@@ -498,3 +499,131 @@ app.delete('/menu/:id', (req, res) => {
         });
     });
 });
+
+// เพิ่มคิว
+app.post('/queue', async (req, res) => {
+    const { queues } = req.body;
+    console.log('Received queue data:', req.body)
+    if (!queues || !Array.isArray(queues) || queues.length === 0) {
+        return res.status(400).json({ error: 'Invalid queue data format.' });
+    }
+
+    try {
+        const insertPromises = queues.map(async (queue) => {
+            const { user_name, queue_number, DateTime } = queue;
+            if (!user_name || !queue_number || !DateTime) {
+                console.log('Invalid queue data:', queue);
+                throw new Error('Missing required fields in queue data.');
+            }
+            await new Promise((resolve, reject) => {
+                db.query( // ใช้ db ตรงนี้
+                    'INSERT INTO queue (user_name, queue_number, DateTime) VALUES (?, ?, ?)',
+                    [user_name, queue_number, DateTime],
+                    (error, results) => {
+                        if (error) {
+                            console.error('Error inserting queue data:', error);
+                            reject(error);
+                        } else {
+                            console.log('Queue data inserted successfully:', results);
+                            resolve(results);
+                        }
+                    }
+                );
+            });
+        });
+        await Promise.all(insertPromises);
+        res.status(201).json({ message: 'All queue data inserted successfully!' });
+    } catch (error) {
+        console.error('Error processing queue data:', error);
+        res.status(500).json({ error: 'Failed to insert queue data' });
+    }
+});
+
+// เพิ่มรายการจอง
+app.post('/ordering', async (req, res) => {
+    console.log('Received order data:', req.body);
+    const { orders } = req.body;
+    if (!orders || !Array.isArray(orders) || orders.length === 0) {
+        return res.status(400).json({ error: 'Invalid order data format.' });
+    }
+
+    try {
+         for (const order of orders) {
+                console.log('Processing order:', order);
+               try {
+                     const { user_name, foodname, BookTime, ArrivalTime, user_phone } = order;
+                       if (!user_name || !foodname  || !BookTime || !ArrivalTime) {
+                         return res.status(400).json({ error: 'Missing required fields in an order.' });
+                      }
+                    await new Promise((resolve, reject) => {
+                         db.query(
+                            'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone) VALUES (?, ?, ?, ?, ?)',
+                            [user_name, foodname, BookTime, ArrivalTime, user_phone],
+                             (error, results) => {
+                                  if (error) {
+                                      console.error('Error inserting ordering data:', error);
+                                       reject(error);
+                                 } else {
+                                     console.log('Ordering data inserted successfully:', results);
+                                     resolve(results);
+                                 }
+                            }
+                        );
+                    }).catch(error => {
+                        console.error('SQL Error:', error)
+                    })
+                } catch (error) {
+                    console.error('Error processing order:', error);
+                }
+            }
+        res.status(201).json({ message: 'All ordering data inserted successfully!' });
+    } catch (error) {
+        console.error('Error inserting ordering data:', error);
+        res.status(500).json({ error: 'Failed to insert ordering data' });
+    }
+});
+
+// ดึงข้อมูลมาแสดงหน้าคิว
+app.get('/ordering', (req, res) => {
+    const sql = "SELECT id, user_name, order_details, booktime, ArrivalTime , foodname , user_phone FROM ordering";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error fetching ordering data from DB:", err);
+            return res.status(500).json({ message: "Error fetching ordering data" });
+        }
+        console.log("Data from DB:", results) // ตรวจสอบข้อมูลที่ดึงจาก DB
+        const formattedOrders = results.map(order => {
+            // ตรวจสอบว่า order_details เป็น JSON string
+            let orderDetails = {};
+            try {
+                orderDetails = JSON.parse(order.order_details);
+            } catch (error) {
+                console.error("Error parsing order_details:", error, " for order id:", order.id);
+            }
+
+            const cartItems = {};
+            if (orderDetails && typeof orderDetails === 'object') {
+                for (const key in orderDetails) {
+                    cartItems[key] = orderDetails[key];
+                }
+            }
+
+            return {
+                id: order.id,
+                queueNumber: order.id,
+                reservationDetails: {
+                    name: order.user_name,
+                    numPeople: 1,
+                    foodname: order.foodname, // add foodname
+                    order_details: order.order_details,
+                    ArrivalTime: order.ArrivalTime,
+                    user_phone: order.user_phone,
+                },
+                cartItems: cartItems,
+                status: 'pending'
+            }
+        });
+        console.log("Formated data:", formattedOrders)
+        res.status(200).json(formattedOrders);
+    })
+})

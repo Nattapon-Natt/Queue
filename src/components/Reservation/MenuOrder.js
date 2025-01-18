@@ -55,7 +55,7 @@ const MenuOrder = () => {
 
     const openPopup = (item) => {
         setSelectedItem(item);
-        setSpicinessLevel("ปกติ");
+        setSpicinessLevel("ไม่เผ็ด");
         setQuantity(1);
         setAdditionalDetails("");
         setIsPopupVisible(true);
@@ -132,7 +132,7 @@ const MenuOrder = () => {
                         <select value={spicinessLevel} onChange={e => setSpicinessLevel(e.target.value)}>
                             <option value="ไม่เผ็ด">ไม่เผ็ด</option>
                             <option value="เผ็ดน้อย">เผ็ดน้อย</option>
-                            <option value="เผ็ดกลาง">เผ็ดกลาง (เผ็ดปกติ)</option>
+                            <option value="เผ็ดกลาง">เผ็ดกลาง</option>
                             <option value="เผ็ดมาก">เผ็ดมาก</option>
                         </select>
                     </label>

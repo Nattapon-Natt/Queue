@@ -52,6 +52,11 @@
     flex: 1;
 }
 
+.queue-info label{
+    color: #d0c3c3;
+    display: block;
+}
+
 .queue-name {
     font-size: 1.2em;
     display: block;

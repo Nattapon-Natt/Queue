@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import '../CSS/Reservation.css';
 import { format, isPast } from 'date-fns';
+import '../CSS/Reservation.css';
 
-const OrderItem = ({ item, cartItem }) => (
-    <li key={item.id}>
-        <p> {item.foodname} x {cartItem.quantity}</p>
-        <p>ความเผ็ด: {cartItem.spicinessLevel}</p>
-        <p>รายละเอียด: {cartItem.additionalDetails}</p>
-    </li>
-);
 
+const OrderItem = ({ item, cartItem }) => {
+    return (
+    
+    ` ${item.foodname} x ${cartItem.quantity}   ความเผ็ด: ${cartItem.spicinessLevel}   รายละเอียด: ${cartItem.additionalDetails}  `
+       
+    )
+    }
 const restaurantConfig = {
     openingTime: '00:00',
     closingTime: '20:00',
@@ -19,6 +19,201 @@ const restaurantConfig = {
     cancellationDeadlineHours: 2,
     maxTables: 7,
 };
+
+// Component สำหรับ Form จอง
+function ReservationForm({
+    numPeople,
+    setNumPeople,
+    selectedDate,
+    setSelectedDate,
+    selectedTime,
+    handleTimeChange,
+    handleReserveOnly,
+    handleReserveAndOrder,
+    isAfterClosingTime,
+    isTimeSlotBooked,
+    isDisabled,
+    minDate,
+    loggedInUser,
+}) {
+    return (
+        <div className="first">
+            <h2>Reserve</h2>
+            <p>
+                Welcome, {loggedInUser === 'Guest' ? 'Guest' : loggedInUser} !
+            </p>
+            <p>Enter the number of people</p>
+            <input
+                type="number"
+                min="1"
+                value={numPeople}
+                onChange={(e) => setNumPeople(e.target.value)}
+                className="people-input"
+                placeholder="Number of people"
+            />
+            <p>Select Date:</p>
+            <input
+                type="date"
+                value={selectedDate}
+                min={minDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="date-input"
+                disabled={isAfterClosingTime()}
+            />
+            <p>Select Time:</p>
+            <select
+                className="time-input"
+                value={selectedTime}
+                onChange={handleTimeChange}
+                disabled={isAfterClosingTime()}
+            >
+                <option value="" disabled>Select a time</option>
+                <option value="10:00" disabled={isTimeSlotBooked("10:00")}>10:00 AM</option>
+                <option value="10:15" disabled={isTimeSlotBooked("10:15")}>10:15 AM</option>
+                <option value="10:30" disabled={isTimeSlotBooked("10:30")}>10:30 AM</option>
+                <option value="10:45" disabled={isTimeSlotBooked("10:45")}>10:45 AM</option>
+                <option value="11:00" disabled={isTimeSlotBooked("11:00")}>11:00 AM</option>
+                <option value="11:15" disabled={isTimeSlotBooked("11:15")}>11:15 AM</option>
+                <option value="11:30" disabled={isTimeSlotBooked("11:30")}>11:30 AM</option>
+                <option value="11:45" disabled={isTimeSlotBooked("11:45")}>11:45 AM</option>
+                <option value="12:00" disabled={isTimeSlotBooked("12:00")}>12:00 PM</option>
+                <option value="12:15" disabled={isTimeSlotBooked("12:15")}>12:15 PM</option>
+                <option value="12:30" disabled={isTimeSlotBooked("12:30")}>12:30 PM</option>
+                <option value="12:45" disabled={isTimeSlotBooked("12:45")}>12:45 PM</option>
+                <option value="01:00" disabled={isTimeSlotBooked("01:00")}>01:00 PM</option>
+                <option value="01:15" disabled={isTimeSlotBooked("01:15")}>01:15 PM</option>
+                <option value="01:30" disabled={isTimeSlotBooked("01:30")}>01:30 PM</option>
+                <option value="01:45" disabled={isTimeSlotBooked("01:45")}>01:45 PM</option>
+                <option value="02:00" disabled={isTimeSlotBooked("02:00")}>02:00 PM</option>
+                <option value="02:15" disabled={isTimeSlotBooked("02:15")}>02:15 PM</option>
+                <option value="02:30" disabled={isTimeSlotBooked("02:30")}>02:30 PM</option>
+                <option value="02:45" disabled={isTimeSlotBooked("02:45")}>02:45 PM</option>
+                <option value="03:00" disabled={isTimeSlotBooked("03:00")}>03:00 PM</option>
+                <option value="03:15" disabled={isTimeSlotBooked("03:15")}>03:15 PM</option>
+                <option value="03:30" disabled={isTimeSlotBooked("03:30")}>03:30 PM</option>
+                <option value="03:45" disabled={isTimeSlotBooked("03:45")}>03:45 PM</option>
+                <option value="04:00" disabled={isTimeSlotBooked("04:00")}>04:00 PM</option>
+                <option value="04:15" disabled={isTimeSlotBooked("04:15")}>04:15 PM</option>
+                <option value="04:30" disabled={isTimeSlotBooked("04:30")}>04:30 PM</option>
+                <option value="04:45" disabled={isTimeSlotBooked("04:45")}>04:45 PM</option>
+                <option value="05:00" disabled={isTimeSlotBooked("05:00")}>05:00 PM</option>
+            </select>
+            <button
+                className="reserve-btn"
+                onClick={handleReserveOnly}
+                disabled={isDisabled}
+            >
+                Reserve only <span className="arrow">→</span>
+            </button>
+            <button
+                className="reserve-btn"
+                onClick={handleReserveAndOrder}
+                disabled={isDisabled}
+            >
+                Reserve and Order <span className="arrow">→</span>
+            </button>
+        </div>
+    );
+}
+
+// Component สำหรับแสดงสรุปการจอง
+function ReservationSummary({ reservationDetails, menuItems, setShowSummary, handleConfirm, setReservationDetails, phone, setPhone }) {
+    const [localPhone, setLocalPhone] = useState(phone || '');
+
+    const handleGoBack = () => {
+        setReservationDetails(prevDetails => ({
+            ...prevDetails,
+            phone: localPhone
+        }))
+        setPhone(localPhone);
+        setShowSummary(false);
+
+    };
+    return (
+        <div>
+            <h1>Booking Summary</h1>
+            {reservationDetails?.cartItems && Object.keys(reservationDetails.cartItems).length > 0 ? (
+                <div className="sum-reservarion">
+                    <h4>Order</h4>
+                    <ul>
+                        {Object.entries(reservationDetails.cartItems).map(
+                            ([itemId, cartItem]) => {
+                                const item = menuItems.find(
+                                    (item) => item.id === parseInt(itemId, 10)
+                                );
+                                return item ? (
+                                    <OrderItem key={itemId} item={item} cartItem={cartItem} />
+                                ) : null;
+                            }
+                        ).reduce((acc, curr) => {
+                            if (curr) {
+                                acc.push(curr);
+                            }
+                            return acc;
+                        }, []).map((item, index) => (<li key={index}>{item}</li>))}
+                    </ul>
+                </div>
+            ) : (
+                <p>No items ordered</p>
+            )}
+            <div className="contact">
+                <ul>
+                    <li>
+                        <p>Name : {reservationDetails?.name || 'ไม่มีข้อมูล'}</p>
+                        <p>Quantity : {reservationDetails?.numPeople || 'ไม่มีข้อมูล'}</p>
+                        <p>Tel : {localPhone}</p>
+                        <p>Email : {reservationDetails?.email || 'ไม่มีข้อมูล'}</p>
+                    </li>
+                </ul>
+                <p>Date: {reservationDetails?.selectedDate}</p>
+                <p>Time: {reservationDetails?.selectedTime}</p>
+                <button
+                    className="reserve-btn"
+                    onClick={handleGoBack}
+                >
+                    Go back and edit
+                </button>
+                <button className="reserve-btn" onClick={handleConfirm}>
+                    Confirm
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// Component สำหรับแสดงผลลัพธ์การจอง
+function ResultBox({ reservationDetails, menuItems, handleBackToHome, handleClearReservation }) {
+    return (
+        <div className="result-box">
+            <h2>Successfully reserved the queue</h2>
+            <p>Your queue has been entered into the system.</p>
+            <p>
+                Your Name: {reservationDetails?.reservationDetails?.name || 'N/A'} (
+                {reservationDetails?.reservationDetails?.numPeople}P)
+            </p>
+             <p>Your Order:</p>
+            {reservationDetails?.cartItems && Object.keys(reservationDetails.cartItems).length > 0 ? (
+                <ul>
+                   {typeof reservationDetails.foodname === 'string' ? JSON.parse(reservationDetails.foodname).map((item, index) => <li key={index}>{item}</li>) : null}
+                </ul>
+            ) : (
+                <p>No items ordered</p>
+            )}
+            <p>Booked on: {reservationDetails?.reservationTime?.bookingDate}</p>
+            <p>Your Queue: {reservationDetails?.queueNumber}</p>
+            <p>Time of arrival: {reservationDetails?.reservationTime?.bookingTime}</p>
+            <button className="reserve-btn" onClick={handleBackToHome}>
+                Back
+            </button>
+            <button
+                className="reserve-btn"
+                onClick={handleClearReservation}
+            >
+                Cancel
+            </button>
+        </div>
+    );
+}
 
 function Reservation() {
     const [numPeople, setNumPeople] = useState('');
@@ -56,57 +251,55 @@ function Reservation() {
     };
 
     useEffect(() => {
-    const storedName = localStorage.getItem('name');
-    const storedEmail = localStorage.getItem('email');
-    const storedPhone = localStorage.getItem('phone');
-    const storedShowResult = localStorage.getItem('showResult') === 'true';
-    const storedQueueData = localStorage.getItem('queueData');
-    const storedReservationTime = localStorage.getItem('reservationTime');
-    const storedQueueNumber = localStorage.getItem('queueNumber');
-    const storedReservationDetails = localStorage.getItem('reservationDetails');
+        const storedName = localStorage.getItem('name');
+        const storedEmail = localStorage.getItem('email');
+        const storedPhone = localStorage.getItem('phone');
+        const storedShowResult = localStorage.getItem('showResult') === 'true';
+        const storedQueueData = localStorage.getItem('queueData');
+        const storedReservationTime = localStorage.getItem('reservationTime');
+        const storedQueueNumber = localStorage.getItem('queueNumber');
+         const storedReservationDetails = localStorage.getItem('reservationDetails');
 
-    setLoggedInUser(storedName || 'Guest');
-    setPhone(storedPhone || '');
-    setEmail(storedEmail || '');
-    setIsLoggedIn(!!storedName && !!storedEmail);
 
-    // เรียก fetchMenuItems ในทุกกรณี
-    fetchMenuItems();
+        setLoggedInUser(storedName || 'Guest');
+        setPhone(storedPhone || '');
+        setEmail(storedEmail || '');
+        setIsLoggedIn(!!storedName && !!storedEmail);
 
-    // ถ้ามี showResult = true
-    if (storedShowResult) {
-        setShowResult(true);
-        if (storedQueueData) {
-            const queueData = JSON.parse(storedQueueData);
-            setReservationDetails(queueData.reservationDetails);
+        fetchMenuItems();
+
+        if (storedShowResult) {
+            setShowResult(true);
+            if (storedQueueData) {
+                const queueData = JSON.parse(storedQueueData);
+                setReservationDetails(queueData.reservationDetails);
+            }
+            if (storedReservationTime) {
+                setReservationTime(JSON.parse(storedReservationTime));
+            }
+            if (storedQueueNumber) {
+                setQueueNumber(storedQueueNumber);
+            }
+             if (storedReservationDetails) {
+                setReservationDetails(JSON.parse(storedReservationDetails));
+            }
+            return;
         }
-        if (storedReservationTime) {
-            setReservationTime(JSON.parse(storedReservationTime));
-        }
-        if (storedQueueNumber) {
-            setQueueNumber(storedQueueNumber);
-        }
-        if (storedReservationDetails) {
-            setReservationDetails(JSON.parse(storedReservationDetails));
-        }
-        return;
-    }
 
-    // ถ้าไม่มี showResult แต่มี orderDetails จาก navigation
-    if (location.state && location.state.orderDetails) {
-        const { cartItems, reservationDetails } = location.state.orderDetails;
-        setReservationDetails({ ...reservationDetails, cartItems });
-        setShowSummary(true);
-        setIsTimeSelected(true);
-        setSelectedDate(reservationDetails.selectedDate);
-        setSelectedTime(reservationDetails.selectedTime);
-        setNumPeople(reservationDetails.numPeople);
-        return;
-    }
+        if (location.state && location.state.orderDetails) {
+            const { cartItems, reservationDetails } = location.state.orderDetails;
+            setReservationDetails({ ...reservationDetails, cartItems });
+            setShowSummary(true);
+            setIsTimeSelected(true);
+            setSelectedDate(reservationDetails.selectedDate);
+            setSelectedTime(reservationDetails.selectedTime);
+            setNumPeople(reservationDetails.numPeople);
+            return;
+        }
 
-    const today = new Date();
-    setMinDate(format(today, 'yyyy-MM-dd'));
-}, [location.state]);
+        const today = new Date();
+        setMinDate(format(today, 'yyyy-MM-dd'));
+    }, [location.state]);
 
     const handleClearReservation = () => {
         localStorage.removeItem('showResult');
@@ -127,7 +320,6 @@ function Reservation() {
     }, []);
 
     useEffect(() => {
-        // Load booked slots from localStorage on component mount
         const storedBookedSlots = localStorage.getItem('bookedSlots');
         if (storedBookedSlots) {
             setBookedSlots(JSON.parse(storedBookedSlots));
@@ -205,7 +397,7 @@ function Reservation() {
         setError(null);
     };
 
-    const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
         if (reservationDetails && isTimeSelected) {
             const selectedDateTime = `${selectedDate} ${selectedTime}`;
             const currentBookedCount = bookedSlots[selectedDateTime] || 0;
@@ -214,6 +406,7 @@ function Reservation() {
                 setError("เวลานี้มีคนจองเต็มแล้ว กรุณาเลือกเวลาอื่น");
                 return;
             }
+
             const peopleCount = parseInt(reservationDetails.numPeople, 10);
             let queue;
 
@@ -224,24 +417,11 @@ function Reservation() {
                 queue = `A${queueCounterA}`;
                 setQueueCounterA(queueCounterA + 1);
             }
+
             setQueueNumber(queue);
             const now = new Date();
-            const bookingTime = new Date(`${selectedDate}T${selectedTime}`).toLocaleString('en-TH', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-            const bookingDate = now.toLocaleString('en-TH', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+            const bookingTime = format(new Date(`${selectedDate}T${selectedTime}`), 'HH:mm:ss')
+            const bookingDate = format(now, 'yyyy-MM-dd');
             const formattedTime = {
                 bookingTime,
                 bookingDate
@@ -264,7 +444,7 @@ function Reservation() {
             const queueData = {
                 queueNumber: queue,
                 reservationTime: formattedTime,
-                reservationDetails: reservationDetails,
+                reservationDetails: { ...reservationDetails, selectedTime: selectedTime },
                 cartItems: reservationDetails?.cartItems || {}
             };
 
@@ -272,13 +452,54 @@ function Reservation() {
             localStorage.setItem('queueData', stringifiedQueueData);
             localStorage.setItem('queueNumber', queue);
             localStorage.setItem('reservationTime', JSON.stringify(formattedTime));
-            localStorage.setItem('reservationDetails', JSON.stringify(reservationDetails));
-            localStorage.setItem('showResult', 'true');
-            setShowResult(true)
-            setShowSummary(false)
+            localStorage.setItem('reservationDetails', JSON.stringify(queueData.reservationDetails));
+            setShowSummary(false);
 
-        }
-        setError(null);
+             // ข้อมูลที่ต้องส่งไปยังฐานข้อมูล
+             const queueDataForDB = {
+                queue_number: queue,
+                DateTime: formattedTime.bookingDate,
+                user_name: reservationDetails?.name,
+             };
+
+            const selectedDateTimeForDB = format(new Date(selectedDateTime), 'yyyy-MM-dd HH:mm');
+
+          const foodname =  Object.entries(reservationDetails?.cartItems || {}).map(([itemId, cartItem]) => {
+                        const item = menuItems.find(
+                            (item) => item.id === parseInt(itemId, 10)
+                        );
+                        return item ? `${item.foodname} x ${cartItem.quantity}  - ${cartItem.spicinessLevel}  - ${cartItem.additionalDetails}` : null
+                    }).filter(item => item).join('\n');
+            const orderDataForDB = [{
+                user_name: reservationDetails?.name,
+                 foodname: foodname,
+                BookTime: formattedTime.bookingDate,
+                ArrivalTime: selectedDateTimeForDB,
+                user_phone: reservationDetails.phone,
+                 selectedTime: selectedTime,
+            }]
+
+           
+            console.log('orderDataForDB:', orderDataForDB);
+              const queueDataForNavigation = {
+                queueNumber: queue,
+                reservationTime: formattedTime,
+                reservationDetails: { ...reservationDetails, selectedTime: selectedTime },
+                cartItems: reservationDetails?.cartItems || {}
+            }
+             try {
+                 console.log('Sending data:', queueDataForDB);
+                await axios.post('http://localhost:8081/queue', { queues: [queueDataForDB] });
+                  await axios.post('http://localhost:8081/ordering', { orders: orderDataForDB });
+                  console.log('Data sent to backend successfully!');
+                   setShowResult(true)
+                   setReservationDetails(queueDataForNavigation)
+              } catch (error) {
+                   console.error('Error sending data to backend:', error);
+                    setError('Failed to save the reservation data to database');
+              }
+          }
+           setError(null);
     }, [
         reservationDetails,
         queueCounterA,
@@ -289,20 +510,20 @@ function Reservation() {
         selectedTime,
         setQueueList,
         isTimeSelected,
-        bookedSlots
-    ]);
+        bookedSlots,
+        menuItems,
+        phone,
 
+    ]);
     const handleBackToHome = () => {
         navigate('/');
     };
 
     const isTimeValid = (time) => {
         if (!time) return false;
-        const [hour] = time.split(':').map(Number); // Use only the hour
-        const [openingHour] = restaurantConfig.openingTime.split(':').map(Number); // Split only once
-
-        // Convert hours to a single number (e.g. 10:15 => 10)
-        return parseInt(hour) >= parseInt(openingHour); // Compare only the hour part
+        const [hour] = time.split(':').map(Number);
+        const [openingHour] = restaurantConfig.openingTime.split(':').map(Number);
+        return parseInt(hour) >= parseInt(openingHour);
     };
 
     const isWithinOperatingHours = (time) => {
@@ -310,8 +531,6 @@ function Reservation() {
         const [hour] = time.split(':').map(Number); // Use only the hour
         const [openingHour] = restaurantConfig.openingTime.split(':').map(Number);
         const [closingHour] = restaurantConfig.closingTime.split(':').map(Number);
-
-
         return parseInt(hour) >= parseInt(openingHour) && parseInt(hour) < parseInt(closingHour); // Compare only the hour part
     };
     const isAfterClosingTime = () => {
@@ -330,7 +549,6 @@ function Reservation() {
         return false;
     };
 
-
     const isPastDate = (date, time) => {
         if (!date || !time) {
             return false;
@@ -338,7 +556,6 @@ function Reservation() {
         const selectedDateTime = new Date(`${date}T${time}`);
         return isPast(selectedDateTime);
     };
-
 
     const isTimeSlotBooked = (time) => {
         if (!selectedDate || !time) {
@@ -369,164 +586,40 @@ function Reservation() {
                 <h1>MAKE A RESERVARION</h1>
                 <div className="reservation-box">
                     {showResult ? (
-                        <div className="result-box">
-                            <h2>Successfully reserved the queue</h2>
-                            <p>Your queue has been entered into the system.</p>
-                            <p>
-                                Your Name: {reservationDetails?.name || 'N/A'} (
-                                {reservationDetails?.numPeople}P)
-                            </p>
-                            <p>Your Order:</p>
-                            {reservationDetails?.cartItems && Object.keys(reservationDetails.cartItems).length > 0 ? (
-                                <ul>
-                                    {Object.entries(reservationDetails.cartItems).map(
-                                        ([itemId, cartItem]) => {
-                                            const item = menuItems.find(
-                                                (item) => item.id === parseInt(itemId, 10)
-                                            );
-                                            return item ? (
-                                                <OrderItem key={itemId} item={item} cartItem={cartItem} />
-                                            ) : null;
-                                        }
-                                    )}
-                                </ul>
-                            ) : (
-                                <p>No items ordered</p>
-                            )}
-                            <p>DateTime: {reservationTime?.bookingDate}</p>
-                            <p>Your Queue: {queueNumber}</p>
-                            <p>Time: {reservationTime?.bookingTime}</p>
-                            <button className="reserve-btn" onClick={handleBackToHome}>
-                                Back
-                            </button>
-                            <button
-                                className="reserve-btn"
-                                onClick={handleClearReservation}
-                            >
-                                Cancel
-                            </button>
-                        </div>
+                        <ResultBox
+                            reservationDetails={reservationDetails}
+                            menuItems={menuItems}
+                            reservationTime={reservationTime}
+                            queueNumber={queueNumber}
+                            handleBackToHome={handleBackToHome}
+                            handleClearReservation={handleClearReservation}
+                        />
                     ) : showSummary ? (
-                        <div>
-                            <h1>Booking Summary</h1>
-                            {reservationDetails?.cartItems && Object.keys(reservationDetails.cartItems).length > 0 ? (
-                                <div className="sum-reservarion">
-                                    <h4>Order</h4>
-                                    <ul>
-                                        {Object.entries(reservationDetails.cartItems).map(
-                                            ([itemId, cartItem]) => {
-                                                const item = menuItems.find(
-                                                    (item) => item.id === parseInt(itemId, 10)
-                                                );
-                                                return item ? (
-                                                    <OrderItem key={itemId} item={item} cartItem={cartItem} />
-                                                ) : null;
-                                            }
-                                        )}
-                                    </ul>
-                                </div>
-                            ) : (
-                                <p>No items ordered</p>
-                            )}
-                            <div className="contact">
-                                <ul>
-                                    <li>
-                                        <p>Name : {reservationDetails?.name || 'ไม่มีข้อมูล'}</p>
-                                        <p>Quantity : {reservationDetails?.numPeople || 'ไม่มีข้อมูล'}</p>
-                                        <p>Tel : {reservationDetails?.phone || 'ไม่มีข้อมูล'}</p>
-                                        <p>Email : {reservationDetails?.email || 'ไม่มีข้อมูล'}</p>
-                                    </li>
-                                </ul>
-                                <p>Date: {reservationDetails?.selectedDate}</p>
-                                <p>Time: {reservationDetails?.selectedTime}</p>
-                                <button
-                                    className="reserve-btn"
-                                    onClick={() => setShowSummary(false)}
-                                >
-                                    Go back and edit
-                                </button>
-                                <button className="reserve-btn" onClick={handleConfirm}>
-                                    Confirm
-                                </button>
-                            </div>
-                        </div>
+                        <ReservationSummary
+                            reservationDetails={reservationDetails}
+                            menuItems={menuItems}
+                            setShowSummary={setShowSummary}
+                            handleConfirm={handleConfirm}
+                            setReservationDetails={setReservationDetails}
+                            phone={phone}
+                            setPhone={setPhone}
+                        />
                     ) : (
-                        <div className="first">
-                            <h2>Reserve</h2>
-                            <p>
-                                Welcome, {loggedInUser === 'Guest' ? 'Guest' : loggedInUser} !
-                            </p>
-                            <p>Enter the number of people</p>
-                            <input
-                                type="number"
-                                min="1"
-                                value={numPeople}
-                                onChange={(e) => setNumPeople(e.target.value)}
-                                className="people-input"
-                                placeholder="Number of people"
-                            />
-                            <p>Select Date:</p>
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                min={minDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="date-input"
-                                disabled={isAfterClosingTime()}
-                            />
-                            <p>Select Time:</p>
-                            <select
-                                className="time-input"
-                                value={selectedTime}
-                                onChange={handleTimeChange}
-                                disabled={isAfterClosingTime()}
-                            >
-                                <option value="" disabled>Select a time</option>
-                                <option value="10:00" disabled={isTimeSlotBooked("10:00")}>10:00 AM</option>
-                                <option value="10:15" disabled={isTimeSlotBooked("10:15")}>10:15 AM</option>
-                                <option value="10:30" disabled={isTimeSlotBooked("10:30")}>10:30 AM</option>
-                                <option value="10:45" disabled={isTimeSlotBooked("10:45")}>10:45 AM</option>
-                                <option value="11:00" disabled={isTimeSlotBooked("11:00")}>11:00 AM</option>
-                                <option value="11:15" disabled={isTimeSlotBooked("11:15")}>11:15 AM</option>
-                                <option value="11:30" disabled={isTimeSlotBooked("11:30")}>11:30 AM</option>
-                                <option value="11:45" disabled={isTimeSlotBooked("11:45")}>11:45 AM</option>
-                                <option value="12:00" disabled={isTimeSlotBooked("12:00")}>12:00 PM</option>
-                                <option value="12:15" disabled={isTimeSlotBooked("12:15")}>12:15 PM</option>
-                                <option value="12:30" disabled={isTimeSlotBooked("12:30")}>12:30 PM</option>
-                                <option value="12:45" disabled={isTimeSlotBooked("12:45")}>12:45 PM</option>
-                                <option value="01:00" disabled={isTimeSlotBooked("01:00")}>01:00 PM</option>
-                                <option value="01:15" disabled={isTimeSlotBooked("01:15")}>01:15 PM</option>
-                                <option value="01:30" disabled={isTimeSlotBooked("01:30")}>01:30 PM</option>
-                                <option value="01:45" disabled={isTimeSlotBooked("01:45")}>01:45 PM</option>
-                                <option value="02:00" disabled={isTimeSlotBooked("02:00")}>02:00 PM</option>
-                                <option value="02:15" disabled={isTimeSlotBooked("02:15")}>02:15 PM</option>
-                                <option value="02:30" disabled={isTimeSlotBooked("02:30")}>02:30 PM</option>
-                                <option value="02:45" disabled={isTimeSlotBooked("02:45")}>02:45 PM</option>
-                                <option value="03:00" disabled={isTimeSlotBooked("03:00")}>03:00 PM</option>
-                                <option value="03:15" disabled={isTimeSlotBooked("03:15")}>03:15 PM</option>
-                                <option value="03:30" disabled={isTimeSlotBooked("03:30")}>03:30 PM</option>
-                                <option value="03:45" disabled={isTimeSlotBooked("03:45")}>03:45 PM</option>
-                                <option value="04:00" disabled={isTimeSlotBooked("04:00")}>04:00 PM</option>
-                                <option value="04:15" disabled={isTimeSlotBooked("04:15")}>04:15 PM</option>
-                                <option value="04:30" disabled={isTimeSlotBooked("04:30")}>04:30 PM</option>
-                                <option value="04:45" disabled={isTimeSlotBooked("04:45")}>04:45 PM</option>
-                                <option value="05:00" disabled={isTimeSlotBooked("05:00")}>05:00 PM</option>
-                            </select>
-                            <button
-                                className="reserve-btn"
-                                onClick={handleReserveOnly}
-                                disabled={isDisabled}
-                            >
-                                Reserve only <span className="arrow">→</span>
-                            </button>
-                            <button
-                                className="reserve-btn"
-                                onClick={handleReserveAndOrder}
-                                disabled={isDisabled}
-                            >
-                                Reserve and Order <span className="arrow">→</span>
-                            </button>
-                        </div>
+                        <ReservationForm
+                            numPeople={numPeople}
+                            setNumPeople={setNumPeople}
+                            selectedDate={selectedDate}
+                            setSelectedDate={setSelectedDate}
+                            selectedTime={selectedTime}
+                            handleTimeChange={handleTimeChange}
+                            handleReserveOnly={handleReserveOnly}
+                            handleReserveAndOrder={handleReserveAndOrder}
+                            isAfterClosingTime={isAfterClosingTime}
+                            isTimeSlotBooked={isTimeSlotBooked}
+                            isDisabled={isDisabled}
+                            minDate={minDate}
+                            loggedInUser={loggedInUser}
+                        />
                     )}
                 </div>
             </div>
