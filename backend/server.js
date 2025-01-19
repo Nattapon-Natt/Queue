@@ -378,17 +378,15 @@ const storage = multer.diskStorage({
 
 // เพิ่มเมนูอาหาร
 app.post('/menu', upload.single('image'), (req, res) => {
-    const { foodname, price, detail } = req.body; // รับค่าจาก body
-    const imagePath = req.file ? req.file.filename : null; // ตรวจสอบไฟล์อัพโหลด
+    const { foodname, price, detail, category } = req.body;  // เพิ่ม category จาก request body
+    const imagePath = req.file ? req.file.filename : null;
 
-    // ตรวจสอบว่าข้อมูลครบหรือไม่
     if (!foodname || !price) {
         return res.status(400).json({ error: 'กรุณากรอกชื่อเมนูและราคา' });
     }
 
-    // เพิ่มข้อมูลในฐานข้อมูล
-    const sql = 'INSERT INTO food (foodname, price, detail, image) VALUES (?, ?, ?, ?)';
-    const values = [foodname, price, detail, imagePath];
+    const sql = 'INSERT INTO food (foodname, price, detail, image, category) VALUES (?, ?, ?, ?, ?)'; // เพิ่ม category ใน SQL query
+    const values = [foodname, price, detail, imagePath, category]; // เพิ่ม category ใน values
 
     db.query(sql, values, (err, result) => {
         if (err) {
@@ -435,14 +433,14 @@ app.get('/menu', (req, res) => {
 // อัปเดตข้อมูลเมนูอาหาร
 app.put('/menu/:id', upload.single('image'), (req, res) => {
     const { id } = req.params;
-    const { foodname, price, detail } = req.body;
-    const image = req.file ? req.file.filename : null; // ชื่อไฟล์ที่อัปโหลด (หากมี)
+    const { foodname, price, detail, category } = req.body; // เพิ่ม category จาก request body
+    const image = req.file ? req.file.filename : null;
 
     console.log("Uploaded Image:", image);
-    console.log("Request Parameters:", { id, foodname, price, detail });
+    console.log("Request Parameters:", { id, foodname, price, detail, category });
 
-    const sql = "UPDATE food SET foodname = ?, price = ?, detail = ?, image = ? WHERE id = ?";
-    const values = [foodname, price, detail, image, id];
+    const sql = "UPDATE food SET foodname = ?, price = ?, detail = ?, image = ?, category = ? WHERE id = ?";  // เพิ่ม category ใน SQL query
+    const values = [foodname, price, detail, image, category, id]; // เพิ่ม category ใน values
 
     db.query(sql, values, (err, result) => {
         if (err) {
@@ -548,34 +546,34 @@ app.post('/ordering', async (req, res) => {
     }
 
     try {
-         for (const order of orders) {
-                console.log('Processing order:', order);
-               try {
-                     const { user_name, foodname, BookTime, ArrivalTime, user_phone } = order;
-                       if (!user_name || !foodname  || !BookTime || !ArrivalTime) {
-                         return res.status(400).json({ error: 'Missing required fields in an order.' });
-                      }
-                    await new Promise((resolve, reject) => {
-                         db.query(
-                            'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone) VALUES (?, ?, ?, ?, ?)',
-                            [user_name, foodname, BookTime, ArrivalTime, user_phone],
-                             (error, results) => {
-                                  if (error) {
-                                      console.error('Error inserting ordering data:', error);
-                                       reject(error);
-                                 } else {
-                                     console.log('Ordering data inserted successfully:', results);
-                                     resolve(results);
-                                 }
-                            }
-                        );
-                    }).catch(error => {
-                        console.error('SQL Error:', error)
-                    })
-                } catch (error) {
-                    console.error('Error processing order:', error);
+        for (const order of orders) {
+            console.log('Processing order:', order);
+            try {
+                const { user_name, foodname, BookTime, ArrivalTime, user_phone } = order;
+                if (!user_name || !foodname || !BookTime || !ArrivalTime) {
+                    return res.status(400).json({ error: 'Missing required fields in an order.' });
                 }
+                await new Promise((resolve, reject) => {
+                    db.query(
+                        'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone) VALUES (?, ?, ?, ?, ?)',
+                        [user_name, foodname, BookTime, ArrivalTime, user_phone],
+                        (error, results) => {
+                            if (error) {
+                                console.error('Error inserting ordering data:', error);
+                                reject(error);
+                            } else {
+                                console.log('Ordering data inserted successfully:', results);
+                                resolve(results);
+                            }
+                        }
+                    );
+                }).catch(error => {
+                    console.error('SQL Error:', error)
+                })
+            } catch (error) {
+                console.error('Error processing order:', error);
             }
+        }
         res.status(201).json({ message: 'All ordering data inserted successfully!' });
     } catch (error) {
         console.error('Error inserting ordering data:', error);

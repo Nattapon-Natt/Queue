@@ -6,14 +6,18 @@ import Sidebar from './Sidebar';
 
 function EditMenu() {
     const [menuItems, setMenuItems] = useState([]);
-    const [newMenuItem, setNewMenuItem] = useState({ foodname: '', price: '', image: null });
+    const [newMenuItem, setNewMenuItem] = useState({
+        foodname: '',
+        price: '',
+        detail: '',
+        image: null,
+        category: 'อาหารหลัก', // Default value, but will update during edit
+    });
     const [isEditing, setIsEditing] = useState(false);
     const [editingItemId, setEditingItemId] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const imageInputRef = useRef(null);
     const editFormRef = useRef(null);
-
-
     const navigate = useNavigate();
     const location = useLocation();
     const [userData, setUserData] = useState({
@@ -28,7 +32,7 @@ function EditMenu() {
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
-        if (!storedEmail && location.pathname === '/editmenu') { 
+        if (!storedEmail && location.pathname === '/editmenu') {
             navigate('/emp', { replace: true });
             return;
         }
@@ -38,21 +42,21 @@ function EditMenu() {
         }
 
         fetchMenu();
-    }, [navigate,location]);
+    }, [navigate, location]);
 
     const fetchUserData = async (email) => {
         try {
             const response = await axios.get(`http://localhost:8081/profile/emp?email=${email}`);
             if (response.data) {
-                setUserData(response.data); // ตั้งค่าข้อมูลหากมีอีเมล
+                setUserData(response.data);
             } else {
                 console.error("User data not found");
-                setUserData(null); // รีเซ็ตข้อมูลหากไม่พบ
+                setUserData(null);
                 navigate('/emp');
             }
         } catch (error) {
             console.error('Error fetching user data:', error);
-            setUserData(null); // รีเซ็ตข้อมูลเมื่อเกิดข้อผิดพลาด
+            setUserData(null);
             navigate('/emp');
         }
     };
@@ -76,12 +80,12 @@ function EditMenu() {
             return;
         }
         try {
-            // เตรียมข้อมูลสำหรับการอัปโหลด
             const formData = new FormData();
             formData.append('foodname', newMenuItem.foodname);
             formData.append('price', newMenuItem.price);
             formData.append('detail', newMenuItem.detail);
             formData.append('image', newMenuItem.image);
+            formData.append('category', newMenuItem.category);
 
             await axios.post('http://localhost:8081/menu', formData, {
                 headers: {
@@ -93,22 +97,23 @@ function EditMenu() {
                 imageInputRef.current.value = '';
             }
 
-            setNewMenuItem((prev) => ({ ...prev, foodname: '', price: '', detail: '', image: null }));
-            setPreviewImage(null); // ล้าง previewImage 
+
+            setNewMenuItem((prev) => ({ ...prev, foodname: '', price: '', detail: '', image: null, category: 'อาหารหลัก' }));
+            setPreviewImage(null);
             fetchMenu();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             console.error('Error adding menu item:', error);
             alert('เกิดข้อผิดพลาดในการเพิ่มเมนู: ' + (error.response ? error.response.data.error : error.message));
         }
-        fetchMenu(); // เพิ่ม
+        fetchMenu();
     };
+
 
     // ลบเมนู
     const handleDeleteMenu = async (id) => {
-        // แสดงแจ้งเตือนยืนยันก่อนลบ
         const isConfirmed = window.confirm("คุณต้องการลบเมนูนี้ใช่หรือไม่?");
-    
+
         if (isConfirmed) {
             try {
                 await axios.delete(`http://localhost:8081/menu/${id}`);
@@ -121,17 +126,23 @@ function EditMenu() {
             console.log("การลบถูกยกเลิก");
         }
     };
-    
+
     // เริ่มแก้ไขเมนู
     const handleEditMenu = (item) => {
         setIsEditing(true);
         setEditingItemId(item.id);
-        setNewMenuItem({ foodname: item.foodname, price: item.price, detail: item.detail, image: null });
+        setNewMenuItem({
+            foodname: item.foodname,
+            price: item.price,
+            detail: item.detail,
+            image: null,
+            category: item.category,
+        });
         setPreviewImage(`http://localhost:8081/uploads/${item.image}`);
 
         setTimeout(() => {
             if (editFormRef.current) {
-                editFormRef.current.scrollIntoView({ begavior: 'smooth', block: 'start' });
+                editFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }, 100);
     };
@@ -151,13 +162,15 @@ function EditMenu() {
             if (newMenuItem.image) {
                 formData.append('image', newMenuItem.image);
             }
+            formData.append('category', newMenuItem.category);
+
 
             await axios.put(`http://localhost:8081/menu/${editingItemId}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            setNewMenuItem({ foodname: '', price: '', detail: '', image: null });
+            setNewMenuItem({ foodname: '', price: '', detail: '', image: null, category: 'อาหารหลัก' });
             setIsEditing(false);
             setEditingItemId(null);
             fetchMenu();
@@ -166,20 +179,22 @@ function EditMenu() {
             console.error('Error saving edited menu item:', error);
             alert('เกิดข้อผิดพลาดในการบันทึกการแก้ไข: ' + (error.response ? error.response.data.error : error.message));
         }
-        fetchMenu(); // เพิ่ม
+        fetchMenu();
     };
-
     // รูป
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setNewMenuItem((prev) => ({ ...prev, image: file }));
-        setPreviewImage(URL.createObjectURL(file)); // สร้าง URL สำหรับแสดงตัวอย่าง
+        setPreviewImage(URL.createObjectURL(file));
     };
-
     // จัดการการเปลี่ยนแปลงของ input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewMenuItem((prev) => ({ ...prev, [name]: value }));
+    };
+    const handleCategoryChange = (e) => {
+        const { value } = e.target;
+        setNewMenuItem((prev) => ({ ...prev, category: value }));
     };
 
     return (
@@ -188,7 +203,6 @@ function EditMenu() {
             <div className="content">
                 <div className="menu-management">
                     <h2>จัดการเมนูอาหาร</h2>
-
                     {/* แสดงรายการเมนู */}
                     <div className="menu-list">
                         {menuItems.map((item) => (
@@ -196,6 +210,7 @@ function EditMenu() {
                                 <h4>{item.foodname}</h4>
                                 <p>ราคา: {item.price} บาท</p>
                                 <p>รายละเอียด: {item.detail} </p>
+                                <p>หมวดหมู่: {item.category}</p>
                                 {item.image && (
                                     <img
                                         src={`http://localhost:8081/uploads/${item.image}`}
@@ -210,7 +225,6 @@ function EditMenu() {
                             </div>
                         ))}
                     </div>
-
                     {/* ฟอร์มเพิ่ม/แก้ไขเมนู */}
                     <form ref={editFormRef} onSubmit={isEditing ? handleSaveEdit : handleAddMenu}>
                         <div className="form-group">
@@ -248,6 +262,18 @@ function EditMenu() {
                             />
                         </div>
                         <div className="form-group">
+                            <label>หมวดหมู่</label>
+                            <select
+                                name="category"
+                                value={newMenuItem.category}
+                                onChange={handleCategoryChange}
+                            >
+                                <option value="อาหารหลัก">อาหารหลัก</option>
+                                <option value="ขนมหวาน">ขนมหวาน</option>
+                                <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
                             <label>รูปภาพเมนู</label>
                             <input
                                 type="file"
@@ -275,7 +301,7 @@ function EditMenu() {
                                     className="cancel-btn"
                                     onClick={() => {
                                         setIsEditing(false);
-                                        setNewMenuItem({ foodname: '', price: '', detail: '', image: null });
+                                        setNewMenuItem({ foodname: '', price: '', detail: '', image: null, category: 'อาหารหลัก' });
                                         setPreviewImage(null);
                                     }}
                                 >
