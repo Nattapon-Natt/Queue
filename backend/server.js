@@ -583,45 +583,79 @@ app.post('/ordering', async (req, res) => {
 
 // ดึงข้อมูลมาแสดงหน้าคิว
 app.get('/ordering', (req, res) => {
-    const sql = "SELECT id, user_name, order_details, booktime, ArrivalTime , foodname , user_phone FROM ordering";
+    const sql = "SELECT id, user_name, order_details, booktime, ArrivalTime, foodname, user_phone, status FROM ordering"; // Query SQL
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Error fetching ordering data from DB:", err);
             return res.status(500).json({ message: "Error fetching ordering data" });
         }
-        console.log("Data from DB:", results) // ตรวจสอบข้อมูลที่ดึงจาก DB
+
+        // Log ข้อมูลที่ดึงมาจากฐานข้อมูล
+        console.log("Data from DB:", results);
+
         const formattedOrders = results.map(order => {
-            // ตรวจสอบว่า order_details เป็น JSON string
-            let orderDetails = {};
+            let orderDetails = [];
             try {
-                orderDetails = JSON.parse(order.order_details);
-            } catch (error) {
-                console.error("Error parsing order_details:", error, " for order id:", order.id);
-            }
-
-            const cartItems = {};
-            if (orderDetails && typeof orderDetails === 'object') {
-                for (const key in orderDetails) {
-                    cartItems[key] = orderDetails[key];
+                // ตรวจสอบและแปลง order_details เป็น JSON
+                if (order.order_details && typeof order.order_details === 'string') {
+                    orderDetails = JSON.parse(order.order_details);
                 }
+            } catch (error) {
+                console.error("Error parsing order_details:", error, "for order id:", order.id);
+                orderDetails = []; // ตั้งค่าเริ่มต้นให้เป็น array ว่าง
             }
 
+            // แปลง orderDetails ให้มีโครงสร้างที่ต้องการ
+            const items = Array.isArray(orderDetails) ? orderDetails.map(item => ({
+                itemId: item.itemId || null, // ใช้ค่า null หากไม่มี itemId
+                quantity: item.quantity || 0, // ใช้ค่า 0 หากไม่มี quantity
+                spicinessLevel: item.spicinessLevel || "Not specified", // ใช้ค่าเริ่มต้น
+                additionalDetails: item.additionalDetails || ""
+            })) : [];
+
+            // คืนค่ารูปแบบใหม่
             return {
                 id: order.id,
-                queueNumber: order.id,
+                queueNumber: order.id, // ใช้ id เป็น queueNumber
                 reservationDetails: {
-                    name: order.user_name,
-                    numPeople: 1,
-                    foodname: order.foodname, // add foodname
-                    order_details: order.order_details,
-                    ArrivalTime: order.ArrivalTime,
-                    user_phone: order.user_phone,
+                    name: order.user_name || "Unknown", // ใช้ค่า "Unknown" หากไม่มี user_name
+                    numPeople: 1, // ค่าเริ่มต้น
+                    foodname: order.foodname || "Not specified",
+                    ArrivalTime: order.ArrivalTime || "Unknown",
+                    user_phone: order.user_phone || "No phone"
                 },
-                cartItems: cartItems,
-                status: 'pending'
-            }
+                items: items, // รายการอาหาร
+                status: order.status || "Pending" // ใช้ "Pending" หากไม่มีสถานะ
+            };
         });
-        console.log("Formated data:", formattedOrders)
-        res.status(200).json(formattedOrders);
-    })
-})
+
+        // Log ข้อมูลที่ถูกจัดรูปแบบ
+        console.log("Formatted data:", formattedOrders);
+        res.status(200).json(formattedOrders); // ส่งข้อมูลกลับไปยัง client
+    });
+});
+
+// อัปเดตสถานะการจอง
+app.put('/ordering/:id', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    console.log("Updating order:", id, "with status:", status);
+
+    const sql = "UPDATE ordering SET status = ? WHERE id = ?";
+    const values = [status, id];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error updating ordering:", err);
+            return res.status(500).json({ message: "Error updating ordering: " + err.message });
+        }
+
+        console.log("Query Result:", result);
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ message: "Ordering updated successfully." });
+        } else {
+            return res.status(404).json({ message: "Ordering not found." });
+        }
+    });
+});

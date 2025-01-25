@@ -1,0 +1,44 @@
+.table-booking-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: 'kanit';
+    width: 100%;
+    max-width: 1200px;
+    margin: 100px auto;
+}
+
+.table-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* แสดงผลเป็น 3 คอลัมน์ */
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.table-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.table-item.booked {
+    background-color: #d3ffd3;
+}
+
+@media (max-width: 768px) {
+    .table-list {
+        grid-template-columns: repeat(2, 1fr);
+        /* แสดงผลเป็น 2 คอลัมน์เมื่อหน้าจอเล็กลง */
+    }
+}
+
+@media (max-width: 480px) {
+    .table-list {
+        grid-template-columns: 1fr;
+        /* แสดงผลเป็น 1 คอลัมน์เมื่อหน้าจอเล็กมาก */
+    }
+}

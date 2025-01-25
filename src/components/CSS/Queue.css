@@ -6,6 +6,7 @@
     padding-top: 10rem;
     justify-content: center;
     text-align: center;
+    
 }
 
 .queue-container {
@@ -16,7 +17,7 @@
     color: white;
     font-family: 'kanit';
     margin-top: 5rem;
-    height: 650px;
+    height: 100%;
     width: 100%;
 }
 

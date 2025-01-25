@@ -14,7 +14,7 @@ const OrderItem = ({ item, cartItem }) => {
     }
 const restaurantConfig = {
     openingTime: '00:00',
-    closingTime: '20:00',
+    closingTime: '22:00',
     maxPeoplePerReservation: 10,
     cancellationDeadlineHours: 2,
     maxTables: 7,

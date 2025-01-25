@@ -21,6 +21,7 @@ import EditMenu from './components/Sidebar/EditMenu';
 import Queue from './components/Sidebar/Queue';
 import Info from './components/Sidebar/Info';
 import EmpInfo from './components/Sidebar/EmpInfo';
+import TableBooking from './components/Sidebar/TableBooking';
 
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
         <Route path="/queue" element={<Queue />} />
         <Route path="/editcus" element={<CusInfo />} />
         <Route path="/editemp" element={<EmpInfo />} />
+        <Route path="/table-booking" element={<TableBooking />} />
       </Routes>
 
       {/* {memberType === 'idol' && renderPage()} */}

@@ -1,72 +1,72 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import axios from 'axios';
 import '../CSS/Queue.css';
 import Sidebar from './Sidebar';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const OrderItem = ({ itemId, cartItem, getFoodName }) => {
-    console.log("OrderItem ItemId:", itemId, "cartItem:", cartItem);
     if (!cartItem) return null;
     return (
         <p>
-            {getFoodName(itemId)} x {cartItem?.quantity} : {cartItem?.spicinessLevel} : {cartItem?.additionalDetails}
+            {getFoodName(itemId)} x {cartItem.quantity} : {cartItem.spicinessLevel || '-'} : {cartItem.additionalDetails || '-'}
         </p>
     );
 };
 
 const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
-    console.log("QueueItem Order:", order);
+    const handleAccept = () => {
+        onAccept(order);
+    };
 
-     // Format ArrivalTime
-    const formattedArrivalTime = useMemo(() => {
-        if (!order?.reservationDetails?.ArrivalTime) {
-            return "ไม่ระบุ";
-        }
+    const formattedFoodname = useMemo(() => {
+        if (!order?.reservationDetails?.foodname) return "ไม่มี";
         try {
-            const date = new Date(order?.reservationDetails?.ArrivalTime);
-            const formattedDate = date.toLocaleDateString('th-TH', {
+            return typeof order?.reservationDetails?.foodname === 'string'
+                ? JSON.parse(order.reservationDetails.foodname).join('\n')
+                : order.reservationDetails.foodname.join('\n');
+        } catch (e) {
+            return order.reservationDetails.foodname;
+        }
+    }, [order?.reservationDetails?.foodname]);
+
+    const formattedArrivalTime = useMemo(() => {
+        if (!order?.reservationDetails?.ArrivalTime) return "ไม่ระบุ";
+        try {
+            const date = new Date(order.reservationDetails.ArrivalTime);
+            return date.toLocaleString('th-TH', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
             });
-             const formattedTime = date.toLocaleTimeString('th-TH', {
-                 hour: '2-digit',
-                 minute: '2-digit',
-                });
-            return `${formattedDate}  ${formattedTime}`;
-
-        } catch (e) {
-             console.error("Error formatting date and time:", e);
-             return "ไม่ถูกต้อง";
+        } catch {
+            return "ไม่ถูกต้อง";
         }
     }, [order?.reservationDetails?.ArrivalTime]);
- const formattedFoodname = useMemo(() => {
-        if (!order?.reservationDetails?.foodname) return "ไม่มี";
-        try {
-             return  typeof order?.reservationDetails?.foodname === 'string' ? JSON.parse(order?.reservationDetails?.foodname).join('\n') : order?.reservationDetails?.foodname.join('\n')
-        } catch (e) {
-            return order?.reservationDetails?.foodname;
-        }
-    }, [order?.reservationDetails?.foodname]);
 
     return (
         <div className="queue-item">
             <div className="queue-info">
-                <span className="queue-name">👤 {order?.reservationDetails?.name} ({order?.reservationDetails?.numPeople} คน)</span>
-                 <label>🍽️ รายการอาหาร : </label>  {formattedFoodname.split('\n').map((item, index) => <label key={index}  >{item}<br /></label>)}
+                <span className="queue-name">👤 {order.reservationDetails.name} ({order.reservationDetails.numPeople} คน)</span>
+                <label>🍽️ รายการอาหาร : </label>
+                {formattedFoodname.split('\n').map((item, index) => (
+                    <label key={index}>{item}<br /></label>
+                ))}
                 <label>🕒 วัน/เวลา : {formattedArrivalTime}</label>
                 <label>📞 เบอร์โทร : {order?.reservationDetails?.user_phone || "ไม่มีข้อมูล"}</label>
                 <div className="queue-order">
-                    {order?.items?.map((item, idx) => (
+                    {order.items?.map((item, idx) => (
                         <OrderItem key={idx} itemId={item.itemId} cartItem={item} getFoodName={getFoodName} />
                     ))}
                 </div>
             </div>
             {isAccepted ? (
-                <button className="order-button order-button-clear" onClick={() => onClear(order?.queueNumber)}>
+                <button className="order-button order-button-clear" onClick={() => onClear(order.id)}>
                     เคลียร์
                 </button>
             ) : (
-                <button className="order-button order-button-accepted" onClick={() => onAccept(order?.queueNumber)}>
+                <button className="order-button order-button-accepted" onClick={handleAccept}>
                     รับออเดอร์
                 </button>
             )}
@@ -77,177 +77,144 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
 const Queue = () => {
     const [queueData, setQueueData] = useState([]);
     const [acceptedQueueData, setAcceptedQueueData] = useState([]);
+    const acceptedQueueDataRef = useRef([]);
     const [menuItems, setMenuItems] = useState([]);
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const getFoodName = useCallback((itemId) => {
-        const item = menuItems.find((item) => item.id === parseInt(itemId, 10));
-        return item ? item.foodname : 'Unknown';
-    }, [menuItems]);
+    const getFoodName = useCallback(
+        (itemId) => menuItems.find((item) => item.id === parseInt(itemId, 10))?.foodname || "Unknown",
+        [menuItems]
+    );
 
-    const groupCartItems = useMemo(() => {
-        const groupOrders = (data) => {
-            const groupedOrders = {};
-            if (!data) return groupedOrders;
-            data.forEach(queueItem => {
-                console.log("groupOrders queueItem:", queueItem)
-                if (!queueItem?.cartItems) return;
-                const queueNumber = queueItem.id;
-                if (!groupedOrders[queueNumber]) {
-                    groupedOrders[queueNumber] = {
-                        queueNumber: queueNumber,
-                        reservationDetails: queueItem?.reservationDetails || {},
-                        items: [],
-                        status: queueItem?.status,
-                    };
-                }
-                for (const [itemId, cartItem] of Object.entries(queueItem?.cartItems || {})) {
-                    groupedOrders[queueNumber].items.push({ itemId, ...cartItem });
-                }
-            });
-            console.log("groupedOrders:", groupedOrders)
-            return groupedOrders;
-        };
-
-        const newOrders = groupOrders(queueData);
-        const acceptedOrders = groupOrders(acceptedQueueData);
-        console.log("Grouped New Orders:", newOrders);
-        console.log("Grouped Accepted Orders:", acceptedOrders);
-        return {
-            newOrders: Object.values(newOrders).reverse(),
-            acceptedOrders: Object.values(acceptedOrders).reverse()
-        };
-    }, [queueData, acceptedQueueData]);
-
-    useEffect(() => {
-        const fetchMenuItems = async () => {
-            try {
-                const response = await axios.get('http://localhost:8081/menu');
-                setMenuItems(response.data);
-            } catch (error) {
-                console.error("Error fetching menu items:", error);
-                setError("Failed to fetch menu items");
-            }
-        };
-        fetchMenuItems();
+    const fetchMenuItems = useCallback(async () => {
+        try {
+            const response = await axios.get("http://localhost:8081/menu");
+            setMenuItems(response.data);
+        } catch (err) {
+            setError("ไม่สามารถดึงข้อมูลเมนูได้");
+            console.error("Error fetching menu items:", err);
+        }
     }, []);
 
-    const fetchQueueData = async () => {
+    const fetchOrders = async () => {
         try {
-            setLoading(true);
             const response = await axios.get('http://localhost:8081/ordering');
-            console.log("Raw API Response:", response.data);
             const allOrders = response.data;
-            const pendingOrders = allOrders
-                .filter(order => order?.status === 'pending')
-                .map(item => ({ ...item, queueNumber: item.id, foodname : item.foodname  ? JSON.parse(item.foodname) : null }));
-            const acceptedOrders = allOrders
-                .filter(order => order?.status === 'accepted')
-                .map(item => ({ ...item, queueNumber: item.id , foodname : item.foodname  ? JSON.parse(item.foodname) : null}));
-            console.log("Pending Orders:", pendingOrders);
-            console.log("Accepted Orders:", acceptedOrders);
-            setQueueData(pendingOrders);
-            setAcceptedQueueData(acceptedOrders);
+
+            // แยกข้อมูลตามสถานะ
+            const pendingOrders = allOrders.filter((order) => order.status !== 'booked');  // คิวใหม่
+            const bookedOrders = allOrders.filter((order) => order.status === 'booked');  // คิวรับแล้ว
+
+            setQueueData(pendingOrders);  // ข้อมูลคิวใหม่
+            acceptedQueueDataRef.current = bookedOrders;  // คิวรับแล้ว
+            setAcceptedQueueData(bookedOrders);  // คิวรับแล้ว
         } catch (error) {
-            console.error("Error fetching ordering data:", error);
-            setError("Failed to fetch ordering data");
-        } finally {
-            setLoading(false);
+            setError('ไม่สามารถดึงข้อมูลออเดอร์ได้');
+            console.error('Error fetching orders:', error);
         }
     };
 
     useEffect(() => {
-        fetchQueueData();
-        const intervalId = setInterval(fetchQueueData, 30000);
+        fetchMenuItems();
+        fetchOrders(); // เรียกใช้ fetchOrders ครั้งแรกทันที
+
+        // ตั้ง interval เพื่อดึงข้อมูลทุกๆ 3 วินาที
+        const intervalId = setInterval(() => {
+            fetchOrders();
+        }, 3000);
+
+        // เมื่อ component ถูกทำลายจะทำการหยุด interval
         return () => clearInterval(intervalId);
     }, []);
 
-    const handleAcceptOrder = async (queueNumber) => {
+    const handleAcceptOrder = async (order) => {
         try {
-            const orderToMove = queueData.find((order) => order.id === queueNumber);
-            if (orderToMove) {
-                await axios.put(`http://localhost:8081/ordering/${queueNumber}`, { ...orderToMove, status: "accepted" });
-                fetchQueueData();
+            await axios.put(`http://localhost:8081/ordering/${order.id}`, { status: 'booked' });
+            // Update the accepted order on acceptedQueueDataRef and acceptedQueueData
+            acceptedQueueDataRef.current = [...acceptedQueueDataRef.current, order];
+            setAcceptedQueueData([...acceptedQueueDataRef.current]);
+
+            navigate(`/table-booking`, { state: { order } });
+        } catch (error) {
+            console.error('Failed to accept order:', error);
+        }
+    };
+
+    const handleClearOrder = useCallback(
+        async (orderId) => {
+            try {
+                await axios.delete(`http://localhost:8081/ordering/${orderId}`);
+                acceptedQueueDataRef.current = acceptedQueueDataRef.current.filter(order => order.id !== orderId);
+                setAcceptedQueueData([...acceptedQueueDataRef.current]);
+            } catch (err) {
+                setError("ไม่สามารถเคลียร์คิวได้");
+                console.error("Error clearing order:", err);
             }
-        } catch (error) {
-            console.error("Error accepting order:", error);
-            setError("Failed to accept order");
+        },
+        []
+    );
+
+    useEffect(() => {
+         if (location.state?.bookedOrderIds && location.state?.order) {
+            const bookedOrderIds = location.state.bookedOrderIds;
+            const bookedOrder = location.state.order;
+
+            setQueueData((prevQueueData) =>
+                prevQueueData.filter((item) => !bookedOrderIds.includes(item.id))
+            );
+
+            // This is already handled in the `handleAcceptOrder` function.
+            // No need to set them here since it causes data conflict.
+            // acceptedQueueDataRef.current = [...acceptedQueueDataRef.current, bookedOrder];
+            // setAcceptedQueueData([...acceptedQueueDataRef.current]);
+
+            navigate('/queue', { replace: true, state: {} });
         }
-    };
+    }, [location.state, navigate]);
 
-    const handleClearOrder = async (queueNumber) => {
-        try {
-            await axios.delete(`http://localhost:8081/ordering/${queueNumber}`);
-            fetchQueueData();
-        } catch (error) {
-            console.error("Error clearing order:", error);
-            setError("Failed to clear order");
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="queue-container">
-                <h2>Loading...</h2>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="queue-container">
-                <h2>Error: {error}</h2>
-            </div>
-        );
-    }
-
-    if (!queueData?.length && !acceptedQueueData?.length) {
-        return (
-            <div className="layout">
-                <Sidebar />
-                <div className="queue-container">
-                    <div className="queue-section">
-                        <h2>คิวใหม่</h2>
-                        <h2>No Queue Data Received</h2>
-                    </div>
-                    <div className="queue-section">
-                        <h2>คิวรับแล้ว</h2>
-                        <h2>No Accepted Queue Data Received</h2>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
 
     return (
         <div className="layout">
             <Sidebar />
             <div className="queue-container">
+                {/* คิวใหม่ (ข้อมูลที่ไม่มีสถานะ 'booked') */}
                 <div className="queue-section">
                     <h2>คิวใหม่</h2>
-                    <div className="queue-list">
-                        {Object.values(groupCartItems?.newOrders || {}).length > 0 ? (
-                            Object.values(groupCartItems?.newOrders || {}).map((order) => (
-                                <QueueItem key={order.queueNumber} order={order} getFoodName={getFoodName} onAccept={handleAcceptOrder} isAccepted={false} />
-                            ))
-                        ) : (
-                            <div className="queue-empty">ไม่มีคิวใหม่</div>
-                        )}
-                    </div>
+                    {queueData.length > 0 ? (
+                        queueData.map((order) => (
+                            <QueueItem
+                                key={order.id}
+                                order={order}
+                                onAccept={handleAcceptOrder}
+                            />
+                        ))
+                    ) : (
+                        <div>ไม่มีคิวใหม่</div>
+                    )}
                 </div>
+
                 <div className="queue-section">
                     <h2>คิวรับแล้ว</h2>
-                    <div className="queue-list">
-                        {Object.values(groupCartItems?.acceptedOrders || {}).length > 0 ? (
-                            Object.values(groupCartItems?.acceptedOrders || {}).map((order) => (
-                                <QueueItem key={order.queueNumber} order={order} getFoodName={getFoodName} onClear={handleClearOrder} isAccepted={true} />
-                            ))
-                        ) : (
-                            <div className="queue-empty">ไม่มีคิวรับแล้ว</div>
-                        )}
-                    </div>
+                    {acceptedQueueDataRef.current.length > 0 ? (
+                        acceptedQueueDataRef.current.map((order) => (
+                            <QueueItem
+                                key={order.id}
+                                order={order}
+                                isAccepted={true}
+                                onClear={handleClearOrder}
+                            />
+                        ))
+                    ) : (
+                        <div>ไม่มีคิวรับแล้ว</div>
+                    )}
                 </div>
+
+
             </div>
         </div>
     );
