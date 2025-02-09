@@ -437,7 +437,6 @@ function Reservation() {
     };
 
     const isPastDate = (date, time) => date && time && isPast(new Date(`${date}T${time}`));
-
     const isTimeSlotBooked = (time) => bookedSlots[`${selectedDate} ${time}`] >= restaurantConfig.maxTables;
 
     const isDisabled =
