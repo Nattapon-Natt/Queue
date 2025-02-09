@@ -68,7 +68,7 @@ function BackToTop() {
                     onClick={scrollToTop}
                 >
                     {/* <img src="/project/masu/images/idol-arrow.png" alt="Back to Top" /> */}
-                    <img src="/assets/pic/idol-arrow.png" alt="Back to Top" />
+                    <img src="/assets/pic/icon/idol-arrow.png" alt="Back to Top" />
                 </div>
             )}
         </>

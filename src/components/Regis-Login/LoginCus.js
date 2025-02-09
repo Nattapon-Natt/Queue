@@ -46,7 +46,7 @@ export default function LoginCus({ setUserName }) {
                                     <div className="login-detail">
                                         <h5>กรุณากรอกรายละเอียดเพื่อทำการเข้าสู่ระบบ</h5>
                                         <div className="inputs">
-                                            <img className="icons" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                            <img className="icons" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                             <input
                                                 type="email"
                                                 onChange={handleInput}
@@ -62,7 +62,7 @@ export default function LoginCus({ setUserName }) {
                                         </div>
 
                                         <div className="inputs">
-                                            <img className="icons" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                            <img className="icons" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
 
                                             <input
                                                 type="password"

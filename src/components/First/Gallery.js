@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 const Gallery = () => {
     const images = [
-        '/assets/pic/padthai.png',
-        '/assets/pic/sour.jpg',
-        '/assets/pic/pineapple.jpg',
+        '/assets/pic/icon/padthai.png',
+        '/assets/pic/icon/sour.jpg',
+        '/assets/pic/icon/pineapple.jpg',
     ];
 
     return (

@@ -17,15 +17,42 @@ const TableBooking = () => {
         { id: 6, isBooked: false, capacity: '2-3' },
         { id: 7, isBooked: false, capacity: 4 },
     ]);
-    const [loading, setLoading] = useState(false);
+     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [acceptedOrders, setAcceptedOrders] = useState([]);
+    const [bookedTables, setBookedTables] = useState([]);
 
     useEffect(() => {
         if (!order) {
             navigate('/queue', { replace: true });
         }
     }, [order, navigate]);
+
+    useEffect(() => {
+        if (location.state?.bookedOrderIds && location.state?.order) {
+          const bookedOrder = location.state.order;
+
+          setTables((prevTables) => {
+            return prevTables.map((table) => {
+                if(
+                  !bookedTables.some(bookedTable => bookedTable.id === table.id) &&
+                    table.capacity === String(bookedOrder?.reservationDetails?.numPeople)
+                ) {
+                  return { ...table, isBooked: true};
+                }
+                 return table;
+               });
+          });
+
+          const bookingTable = tables.find(table=> {
+            return  !bookedTables.some((bookedTable) => bookedTable.id === table.id) &&
+                    table.capacity === String(bookedOrder?.reservationDetails?.numPeople);
+            });
+
+          if (bookingTable) {
+                setBookedTables((prevBookedTables) => [...prevBookedTables, { ...bookingTable, orderId: bookedOrder.id }]);
+          }
+        }
+    }, [location.state, tables, bookedTables]);
 
     const handleBookTable = async (tableId) => {
         if (!order) return;
@@ -36,33 +63,43 @@ const TableBooking = () => {
                 status: 'booked',
             });
 
-            // อัปเดตสถานะโต๊ะ
-            const updatedTables = tables.map((table) =>
-                table.id === tableId ? { ...table, isBooked: true } : table
-            );
-            setTables(updatedTables);
-
-            // นำผู้ใช้กลับไปหน้าคิว พร้อมส่งข้อมูล order ที่จองไปแล้ว
-            navigate('/queue', {
-                state: {
-                    bookedOrderIds: [order.id], // ส่ง ID ของ order ที่จองกลับไป
-                    order: order
-                },
+            setTables((prevTables) => {
+              return prevTables.map((table) =>
+                  table.id === tableId ? { ...table, isBooked: true } : table
+              );
             });
+
+             const bookedTable = tables.find(table => table.id === tableId);
+
+            setBookedTables((prevBookedTables) =>
+              [...prevBookedTables, { ...bookedTable, orderId: order.id}]
+            );
+
+           navigate('/queue', {
+              state: {
+                bookedOrderIds: [order.id],
+                  order: order
+              },
+           });
         } catch (error) {
-            console.error('Error booking table:', error);
-            setError('Failed to book table. Please try again.');
+           console.error('Error booking table:', error);
+           setError('Failed to book table. Please try again.');
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
     };
 
     const handleCancelBooking = (tableId) => {
-        const updatedTables = tables.map((table) =>
-            table.id === tableId ? { ...table, isBooked: false } : table
+          setBookedTables((prevBookedTables) =>
+             prevBookedTables.filter(table => table.id !== tableId)
         );
-        setTables(updatedTables);
+        setTables((prevTables) =>
+          prevTables.map((table) =>
+              table.id === tableId ? { ...table, isBooked: false } : table
+          )
+        );
     };
+
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -75,7 +112,7 @@ const TableBooking = () => {
                 <div className="table-list">
                     <h3>โต๊ะที่ยังไม่ได้จอง</h3>
                     {tables
-                        .filter((table) => !table.isBooked) // แสดงเฉพาะโต๊ะที่ยังไม่ได้จอง
+                        .filter((table) => !table.isBooked)
                         .map((table) => (
                             <TableItem
                                 key={table.id}
@@ -89,17 +126,17 @@ const TableBooking = () => {
                 {/* รายการฝั่งขวา */}
                 <div className="accepted-list">
                     <h3>โต๊ะที่จองแล้ว</h3>
-                    {acceptedOrders.map((order, index) => (
-                        <div key={index} className="accepted-item">
-                            <p>Order ID: {order.id}</p>
-                            <p>Table: {order.table || 'N/A'}</p>
+                    {bookedTables.map((table) => (
+                         <div key={table.id} className="accepted-item">
+                            <p>Order ID: {table.orderId}</p>
+                            <p>Table ID: {table.id} </p>
+                            <p>Capacity: {table.capacity}</p>
                         </div>
                     ))}
                 </div>
             </div>
         </div>
     );
-
 };
 
 export default TableBooking;

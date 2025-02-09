@@ -1,13 +1,14 @@
 import React from 'react';
+import '../CSS/TableItem.css';
 
 const TableItem = ({ table, onBook, onCancel }) => {
     const handleBookingClick = () => {
         if (table.isBooked) {
             if (window.confirm(`คุณต้องการยกเลิกการจองโต๊ะ ${table.id} หรือไม่?`)) {
-                onCancel(table.id);  // ยกเลิกการจอง
+                onCancel(table.id);
             }
         } else {
-            onBook(table.id);  // จองโต๊ะ
+            onBook(table.id);
         }
     };
 
@@ -16,16 +17,15 @@ const TableItem = ({ table, onBook, onCancel }) => {
             <div className={`table-info ${table.isBooked ? 'booked-info' : ''}`}>
                 <h3>โต๊ะ {table.id}</h3>
                 <p>ความจุ: {table.capacity} คน</p>
-                <p>สถานะ: {table.isBooked ? 'จองแล้ว' : 'ว่าง'}</p>
+                <p>สถานะ: {table.isBooked ? (
+                     <span style={{ color: 'green' }}>จองแล้ว</span>
+                     ) : (
+                     <span style={{ color: 'gray' }}>ว่าง</span>
+                 )}</p>
                 <button onClick={handleBookingClick} className={`btn ${table.isBooked ? 'btn-cancel' : 'btn-book'}`}>
                     {table.isBooked ? 'ยกเลิกการจอง' : 'จอง'}
                 </button>
             </div>
-            {table.isBooked && (
-                <div className="booked-table">
-                    <p>โต๊ะ {table.id} ถูกจองแล้ว</p>
-                </div>
-            )}
         </div>
     );
 };

@@ -59,7 +59,7 @@ const Register = () => {
                             <h5> กรุณากรอกรายละเอียดเพื่อทำการสมัครสมาชิก</h5>
                             <div className="input-icons">
                                 <label htmlFor="name" className="required-asterisk">* </label>
-                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                 <input
                                     type="text"
                                     onChange={handleInput}
@@ -75,7 +75,7 @@ const Register = () => {
 
                             <div className="input-icons">
                                 <label htmlFor="lastname" className="required-asterisk">* </label>
-                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                 <input
                                     type="text"
                                     onChange={handleInput}
@@ -91,7 +91,7 @@ const Register = () => {
 
                             <div className="input-icons">
                                 <label htmlFor="phone" className="required-asterisk">* </label>
-                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                 <input
                                     type="phone"
                                     onChange={handleInput}
@@ -107,7 +107,7 @@ const Register = () => {
 
                             <div className="input-icons">
                                 <label htmlFor="email" className="required-asterisk">* </label>
-                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                 <input
                                     type="email"
                                     onChange={handleInput}
@@ -123,7 +123,7 @@ const Register = () => {
 
                             <div className="input-icons">
                                 <label htmlFor="password" className="required-asterisk">* </label>
-                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                 <input
                                     type="password"
                                     onChange={handleInput}

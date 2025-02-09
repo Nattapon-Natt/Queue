@@ -8,15 +8,6 @@
     font-weight: bold;
 }
 
-.first p {
-    font-size: 1.3rem;
-    margin: 0;
-}
-
-.first h2 {
-    font-weight: bold;
-}
-
 .reservation-box {
     background: linear-gradient(145deg, #1d1b61, #492eb8);
     padding-top: 30px;
@@ -28,15 +19,16 @@
     width: 850px;
 }
 
-.reservation-box ul {
-    list-style: none;
-    text-align: left;
-    padding: 0;
+.reservation-box p {
+    color: azure;
+}
+.first p {
+    font-size: 1.3rem;
     margin: 0;
 }
 
-.reservation-box p {
-    color: azure;
+.first h2 {
+    font-weight: bold;
 }
 
 .people-input {
@@ -79,7 +71,7 @@ div button:hover {
     font-weight: bold;
 }
 
-.sum-reservarion,
+.sum-reservation,
 .contact,
 .result-box {
     margin: 10px auto;
@@ -88,21 +80,60 @@ div button:hover {
     width: 90%;
 }
 
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc; /* กำหนดขอบ */
+    border-radius: 5px; /* กำหนดมุมโค้ง */
+}
+
+.sum-reservation .order-list {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px; 
+}
+
 .result-box p{
     font-size: 1.2rem;
 }
 
-.sum-reservarion ul,
-.contact ul,
-.result-box ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.order-container {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px; 
+    margin: 20px auto;
 }
 
-.sum-reservarion li,
-.contact li,
-.result-box li {
+
+
+.order-item .order-column {
+    flex: 1; /* ให้แต่ละคอลัมน์มีความกว้างเท่ากัน */
+    text-align: left; /* จัดข้อความชิดซ้าย */
+}
+
+/* ปรับสไตล์เพิ่มเติมตามต้องการ */
+.order-item .order-column:nth-child(1) {
+    font-weight: bold; /* เน้นชื่ออาหาร */
+}
+
+.order-item .order-column:nth-child(2) {
+    color: orange; /* สีสำหรับความเผ็ด */
+}
+
+.order-item .order-column:nth-child(3) {
+    font-style: italic; /* ตัวเอียงสำหรับรายละเอียด */
+}
+
+.contact ul {
+    list-style: none;
+    padding: 0;
+    margin: 15px auto;
+}
+
+.contact li{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -112,24 +143,25 @@ div button:hover {
     margin-bottom: 5px;
 }
 
-.result-box li {
-    border: none;
+.order-item .foodname {
+    text-align: left;
+    flex: 1;
 }
 
-.sum-reservarion li>p,
-.contact li>p,
-.result-box li>p {
+.order-item .spicinessLevel {
+    text-align: center;
+    flex: 1;
+}
+
+.order-item .additionalDetails {
+    text-align: right;
+    flex: 1;
+}
+
+.contact li>p {
     flex: 1;
     text-align: center;
     margin: 0;
-}
-
-.sum-reservarion li>p:first-child {
-    text-align: left;
-}
-
-.sum-reservarion li>p:last-child {
-    text-align: right;
 }
 
 .contact {

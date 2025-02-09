@@ -10,7 +10,7 @@ const MainContent = () => {
             <Link to="/menu">
             {/* <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" /> */}
                 <img
-                    src="/assets/pic/image.png"
+                    src="/assets/pic/icon/image.png"
                     alt="Main Dish"
                     className="main-image"
                 />

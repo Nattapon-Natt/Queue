@@ -32,7 +32,7 @@ function Navbar({ userName, setUserName }) {
         <nav className="nav">
             <div className="navbar-container">
                 <Link to="/" className="navbar-logo">
-                    <img src="/assets/pic/logo.jpg" alt="MASU-Logo" />
+                    <img src="/assets/pic/icon/logo.jpg" alt="MASU-Logo" />
                     168 THAI RESTAURANT
                 </Link>
                 <div className="menu-icon" onClick={toggleMenu}>

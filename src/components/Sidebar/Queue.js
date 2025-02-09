@@ -119,21 +119,18 @@ const Queue = () => {
 
     useEffect(() => {
         fetchMenuItems();
-        fetchOrders(); // เรียกใช้ fetchOrders ครั้งแรกทันที
+        fetchOrders();
 
-        // ตั้ง interval เพื่อดึงข้อมูลทุกๆ 3 วินาที
         const intervalId = setInterval(() => {
             fetchOrders();
         }, 3000);
 
-        // เมื่อ component ถูกทำลายจะทำการหยุด interval
         return () => clearInterval(intervalId);
     }, []);
 
     const handleAcceptOrder = async (order) => {
         try {
             await axios.put(`http://localhost:8081/ordering/${order.id}`, { status: 'booked' });
-            // Update the accepted order on acceptedQueueDataRef and acceptedQueueData
             acceptedQueueDataRef.current = [...acceptedQueueDataRef.current, order];
             setAcceptedQueueData([...acceptedQueueDataRef.current]);
 
@@ -158,19 +155,13 @@ const Queue = () => {
     );
 
     useEffect(() => {
-         if (location.state?.bookedOrderIds && location.state?.order) {
+        if (location.state?.bookedOrderIds && location.state?.order) {
             const bookedOrderIds = location.state.bookedOrderIds;
             const bookedOrder = location.state.order;
 
             setQueueData((prevQueueData) =>
                 prevQueueData.filter((item) => !bookedOrderIds.includes(item.id))
             );
-
-            // This is already handled in the `handleAcceptOrder` function.
-            // No need to set them here since it causes data conflict.
-            // acceptedQueueDataRef.current = [...acceptedQueueDataRef.current, bookedOrder];
-            // setAcceptedQueueData([...acceptedQueueDataRef.current]);
-
             navigate('/queue', { replace: true, state: {} });
         }
     }, [location.state, navigate]);
@@ -213,8 +204,6 @@ const Queue = () => {
                         <div>ไม่มีคิวรับแล้ว</div>
                     )}
                 </div>
-
-
             </div>
         </div>
     );

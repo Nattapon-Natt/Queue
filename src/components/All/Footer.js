@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-12">
             <div className="copyright-section">
               {/* <img src="/project/masu/images/copyright.png" alt="Copyright Icon" /> */}
-              <img src="/assets/pic/copyright.png" alt="Copyright Icon" />
+              <img src="/assets/pic/icon/copyright.png" alt="Copyright Icon" />
               <p className="copyright-text">สงวนลิขสิทธิ์</p>
             </div>
           </div>
