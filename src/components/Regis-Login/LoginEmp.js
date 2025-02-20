@@ -114,7 +114,7 @@ export default function LoginEmp({ setUserName, setMemberType }) {
                                         <div className="col-12">
                                             <h5 style={{ marginBottom: '30px' }} className="tel-des">กรุณากรอกรายละเอียดเพื่อทำการเข้าสู่ระบบ</h5>
                                             <div className="input-icons">
-                                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
                                                 <input
                                                     type="email"
                                                     onChange={handleInput}
@@ -130,7 +130,7 @@ export default function LoginEmp({ setUserName, setMemberType }) {
                                             </div>
 
                                             <div className="input-icons">
-                                                <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" />
+                                                <img className="icon" src="/assets/pic/icon/user_icon.png" alt="User Icon" />
 
                                                 <input
                                                     type="password"

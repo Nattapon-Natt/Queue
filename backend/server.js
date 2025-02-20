@@ -583,7 +583,7 @@ app.post('/ordering', async (req, res) => {
 
 // ดึงข้อมูลมาแสดงหน้าคิว
 app.get('/ordering', (req, res) => {
-    const sql = "SELECT id, user_name, order_details, booktime, ArrivalTime, foodname, user_phone, status FROM ordering"; // Query SQL
+    const sql = "SELECT * FROM ordering"; // Query SQL
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Error fetching ordering data from DB:", err);
@@ -636,26 +636,67 @@ app.get('/ordering', (req, res) => {
 });
 
 // อัปเดตสถานะการจอง
-app.put('/ordering/:id', (req, res) => {
+app.put("/ordering/:id", async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    console.log("Updating order:", id, "with status:", status);
+    try {
+        await db.query("UPDATE ordering SET status = ? WHERE id = ?", [status, id]);
+        res.status(200).send({ message: "Order updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ error: "Failed to update order" });
+    }
+});
 
-    const sql = "UPDATE ordering SET status = ? WHERE id = ?";
-    const values = [status, id];
+// DELETE - ลบ Order
+app.delete('/ordering/:orderId', (req, res) => {
+    const { orderId } = req.params;
+
+    const sql = 'DELETE FROM ordering WHERE id = ?';
+    db.query(sql, [orderId], (err, result) => {
+        if (err) {
+            console.error('Error deleting order:', err);
+            return res.status(500).json({ message: 'Error deleting order' });
+        }
+        res.json({ message: 'Order deleted successfully' });
+    });
+});
+
+//----------------------------------------------------------------------------
+
+// อัปเดตสถานะโต๊ะ
+app.put('/tables/:tableId', (req, res) => {
+    const { tableId } = req.params;
+    const { status } = req.body;
+
+    const sql = 'UPDATE tables SET status = ? WHERE id = ?';
+    db.query(sql, [status, tableId], (err, result) => {
+        if (err) {
+            console.error('Error updating table status:', err);
+            return res.status(500).json({ message: 'Error updating table status' });
+        }
+        res.json({ message: 'Table status updated successfully' });
+    });
+});
+
+// เพิ่มรายการจองโต๊ะ
+app.post('/tables', (req, res) => {
+    console.log('POST /tables route HIT - Backend Received Request!');
+    const { table_number, status, capacity } = req.body;
+    const sql = 'INSERT INTO tables (table_number, status, capacity) VALUES (?, ?, ?)'; // Adjust column names
+    const values = [table_number, status, capacity];
+
+    console.log("SQL:", sql);
+    console.log("Values:", values);
 
     db.query(sql, values, (err, result) => {
         if (err) {
-            console.error("Error updating ordering:", err);
-            return res.status(500).json({ message: "Error updating ordering: " + err.message });
+            console.error('Error creating booking:', err);
+            return res.status(500).json({ message: 'Error creating booking: ' + err.message });
         }
+        console.log('Booking created successfully.  Table ID:', result.insertId);
 
-        console.log("Query Result:", result);
-        if (result.affectedRows > 0) {
-            return res.status(200).json({ message: "Ordering updated successfully." });
-        } else {
-            return res.status(404).json({ message: "Ordering not found." });
-        }
+        res.status(201).json({ message: 'Booking created successfully!', bookingId: result.insertId });
     });
 });

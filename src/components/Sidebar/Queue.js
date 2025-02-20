@@ -21,9 +21,11 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
     const formattedFoodname = useMemo(() => {
         if (!order?.reservationDetails?.foodname) return "ไม่มี";
         try {
-            return typeof order?.reservationDetails?.foodname === 'string'
-                ? JSON.parse(order.reservationDetails.foodname).join('\n')
-                : order.reservationDetails.foodname.join('\n');
+            return typeof order?.reservationDetails?.foodname === "string"
+                ? formattedFoodname.split('\n').map((item, index) => (
+                    <label key={index}>{item}<br /></label>
+                ))
+                : <label>{formattedFoodname}</label>
         } catch (e) {
             return order.reservationDetails.foodname;
         }
@@ -84,6 +86,18 @@ const Queue = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const initialTables = [
+        { id: 1, isBooked: false, capacity: 3, orderId: null },
+        { id: 2, isBooked: false, capacity: 3, orderId: null },
+        { id: 3, isBooked: false, capacity: 4, orderId: null },
+        { id: 4, isBooked: false, capacity: 3, orderId: null },
+        { id: 5, isBooked: false, capacity: 3, orderId: null },
+        { id: 6, isBooked: false, capacity: 3, orderId: null },
+        { id: 7, isBooked: false, capacity: 4, orderId: null },
+    ];
+
+    const [tables, setTables] = useState(initialTables);
+
     const getFoodName = useCallback(
         (itemId) => menuItems.find((item) => item.id === parseInt(itemId, 10))?.foodname || "Unknown",
         [menuItems]
@@ -110,12 +124,59 @@ const Queue = () => {
 
             setQueueData(pendingOrders);  // ข้อมูลคิวใหม่
             acceptedQueueDataRef.current = bookedOrders;  // คิวรับแล้ว
-            setAcceptedQueueData(bookedOrders);  // คิวรับแล้ว
+            setAcceptedQueueData(bookedOrders);  // ข้อมูลคิวรับแล้ว
         } catch (error) {
             setError('ไม่สามารถดึงข้อมูลออเดอร์ได้');
             console.error('Error fetching orders:', error);
         }
     };
+
+    const handleAcceptOrder = async (order) => {
+        navigate(`/table-booking`, { state: { order, tables } });
+    };
+
+    const handleClearOrder = useCallback(async (orderId) => {
+        console.log("handleClearOrder called with orderId:", orderId); // เพิ่มตรงนี้
+        try {
+            await axios.delete(`http://localhost:8081/ordering/${orderId}`);
+    
+            // Find the table associated with this order
+            const tableToUpdate = tables.find((table) => table.orderId === orderId);
+    
+            if (tableToUpdate) {
+                console.log("Table to update:", tableToUpdate); // เพิ่มตรงนี้
+                // Update the status of the table to "available" in the database
+                try {
+                  await axios.put(
+                    `http://localhost:8081/tables/${tableToUpdate.id}`,
+                    {
+                      status: "available",
+                    }
+                  );
+                  console.log("Table status update successful"); // เพิ่มตรงนี้
+    
+                   //Update the local state of the tables
+                   setTables((prevTables) =>
+                   prevTables.map((table) =>
+                     table.id === tableToUpdate.id
+                       ? { ...table, isBooked: false, orderId: null }
+                       : table
+                   )
+                 );
+                 console.log("Table update successful"); // เพิ่มตรงนี้
+    
+                } catch (updateError) {
+                  console.error("Error updating table status:", updateError);
+                }
+            }
+    
+            await fetchOrders();
+            console.log("Orders fetched successfully"); // เพิ่มตรงนี้
+        } catch (err) {
+            setError("ไม่สามารถเคลียร์คิวได้");
+            console.error("Error clearing order:", err);
+        }
+    }, [tables]);
 
     useEffect(() => {
         fetchMenuItems();
@@ -126,48 +187,14 @@ const Queue = () => {
         }, 3000);
 
         return () => clearInterval(intervalId);
-    }, []);
-
-    const handleAcceptOrder = async (order) => {
-        try {
-            await axios.put(`http://localhost:8081/ordering/${order.id}`, { status: 'booked' });
-            acceptedQueueDataRef.current = [...acceptedQueueDataRef.current, order];
-            setAcceptedQueueData([...acceptedQueueDataRef.current]);
-
-            navigate(`/table-booking`, { state: { order } });
-        } catch (error) {
-            console.error('Failed to accept order:', error);
-        }
-    };
-
-    const handleClearOrder = useCallback(
-        async (orderId) => {
-            try {
-                await axios.delete(`http://localhost:8081/ordering/${orderId}`);
-                acceptedQueueDataRef.current = acceptedQueueDataRef.current.filter(order => order.id !== orderId);
-                setAcceptedQueueData([...acceptedQueueDataRef.current]);
-            } catch (err) {
-                setError("ไม่สามารถเคลียร์คิวได้");
-                console.error("Error clearing order:", err);
-            }
-        },
-        []
-    );
+    }, [fetchMenuItems]);
 
     useEffect(() => {
-        if (location.state?.bookedOrderIds && location.state?.order) {
-            const bookedOrderIds = location.state.bookedOrderIds;
-            const bookedOrder = location.state.order;
-
-            setQueueData((prevQueueData) =>
-                prevQueueData.filter((item) => !bookedOrderIds.includes(item.id))
-            );
-            navigate('/queue', { replace: true, state: {} });
+        if (location.state?.tables) {
+            console.log("update table success");
+            setTables(location.state.tables); // อัปเดตตารางจาก TableBooking
         }
-    }, [location.state, navigate]);
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
+    }, [location.state?.tables]);
 
     return (
         <div className="layout">
@@ -181,6 +208,7 @@ const Queue = () => {
                             <QueueItem
                                 key={order.id}
                                 order={order}
+                                getFoodName={getFoodName}
                                 onAccept={handleAcceptOrder}
                             />
                         ))
@@ -191,8 +219,8 @@ const Queue = () => {
 
                 <div className="queue-section">
                     <h2>คิวรับแล้ว</h2>
-                    {acceptedQueueDataRef.current.length > 0 ? (
-                        acceptedQueueDataRef.current.map((order) => (
+                    {acceptedQueueData.length > 0 ? (
+                        acceptedQueueData.map((order) => (
                             <QueueItem
                                 key={order.id}
                                 order={order}
@@ -203,6 +231,7 @@ const Queue = () => {
                     ) : (
                         <div>ไม่มีคิวรับแล้ว</div>
                     )}
+
                 </div>
             </div>
         </div>
