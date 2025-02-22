@@ -609,7 +609,7 @@ app.get('/ordering', (req, res) => {
             const items = Array.isArray(orderDetails) ? orderDetails.map(item => ({
                 itemId: item.itemId || null, // ใช้ค่า null หากไม่มี itemId
                 quantity: item.quantity || 0, // ใช้ค่า 0 หากไม่มี quantity
-                spicinessLevel: item.spicinessLevel || "Not specified", // ใช้ค่าเริ่มต้น
+                spicinessLevel: item.spicinessLevel || "ไม่ระบุ", // ใช้ค่าเริ่มต้น
                 additionalDetails: item.additionalDetails || ""
             })) : [];
 
@@ -620,7 +620,7 @@ app.get('/ordering', (req, res) => {
                 reservationDetails: {
                     name: order.user_name || "Unknown", // ใช้ค่า "Unknown" หากไม่มี user_name
                     numPeople: 1, // ค่าเริ่มต้น
-                    foodname: order.foodname || "Not specified",
+                    foodname: order.foodname || "ไม่ระบุ",
                     ArrivalTime: order.ArrivalTime || "Unknown",
                     user_phone: order.user_phone || "No phone"
                 },

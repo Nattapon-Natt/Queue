@@ -374,21 +374,20 @@ function Reservation() {
 
         try {
             await axios.post('http://localhost:8081/ordering', { orders: [orderDataForDB] });
-
+    
             localStorage.setItem('queueNumber', queue);
             localStorage.setItem('reservationTime', JSON.stringify(formattedTime));
-            localStorage.setItem('reservationDetails', JSON.stringify({ ...reservationDetails, selectedTime }));
-            localStorage.setItem('foodname', JSON.stringify(orderDataForDB.foodname.split('\n')));
-
+            localStorage.setItem('reservationDetails', JSON.stringify({ ...reservationDetails, selectedTime, numPeople: reservationDetails.numPeople }));
+            localStorage.setItem('foodname', JSON.stringify(Object.keys(reservationDetails?.cartItems || {}).length > 0 ? orderDataForDB.foodname.split('\n') : []));
+    
             setQueueCounterA(prev => parseInt(reservationDetails.numPeople, 10) < 4 ? prev + 1 : prev);
             setQueueCounterB(prev => parseInt(reservationDetails.numPeople, 10) >= 4 ? prev + 1 : prev);
             setBookedSlots(prevBookedSlots => ({ ...prevBookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
             localStorage.setItem('bookedSlots', JSON.stringify({ ...bookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
-
+    
             setShowSummary(false);
             setShowResult(true);
             localStorage.setItem('showResult', 'true');
-
         } catch (err) {
             console.error('Error saving data:', err);
             setError('Failed to save data');
