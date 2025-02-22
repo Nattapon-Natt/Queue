@@ -13,6 +13,7 @@ const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir);
 }
+
 app.use('/uploads', express.static(uploadsDir));
 
 const db = mysql.createConnection({
@@ -21,7 +22,6 @@ const db = mysql.createConnection({
     password: "",
     database: "queue"
 });
-
 
 const port = 8081;
 app.listen(port, () => {
