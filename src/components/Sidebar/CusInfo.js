@@ -25,7 +25,15 @@ const CusInfo = () => {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
-
+    const [userData, setUserData] = useState({
+        name: '',
+        lastname: '',
+        position: '',
+        phone: '',
+        birthdate: '',
+        email: '',
+        password: '',
+    });
 
     const fetchCustomers = useCallback(async () => {
         try {
@@ -39,6 +47,37 @@ const CusInfo = () => {
             setError(err.message);
         }
     }, []);
+
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        const storedPassword = localStorage.getItem('password');
+
+        if (!storedEmail || !storedPassword) {
+            navigate('/emp', { replace: true });
+            return;
+        }
+
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
+                if (response.data && response.data.password === storedPassword) {
+                    setUserData(response.data);
+                } else {
+                    console.error("Unauthorized access");
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('password');
+                    navigate('/emp', { replace: true });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                localStorage.removeItem('email');
+                localStorage.removeItem('password');
+                navigate('/emp', { replace: true });
+            }
+        };
+
+        fetchUserData();
+    }, [navigate]);
 
     useEffect(() => {
         fetchCustomers();
@@ -70,7 +109,6 @@ const CusInfo = () => {
             }
         }
     }, [fetchCustomers]);
-    
 
     const handleSaveEdit = useCallback(async (e) => {
         e.preventDefault();

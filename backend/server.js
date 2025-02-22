@@ -649,54 +649,62 @@ app.put("/ordering/:id", async (req, res) => {
     }
 });
 
-// DELETE - ลบ Order
-app.delete('/ordering/:orderId', (req, res) => {
-    const { orderId } = req.params;
+//----------------------------------------------------------------------------
 
-    const sql = 'DELETE FROM ordering WHERE id = ?';
-    db.query(sql, [orderId], (err, result) => {
+app.get('/tables', (req, res) => {
+    const sql = 'SELECT * FROM tables';
+    db.query(sql, (err, result) => {
         if (err) {
-            console.error('Error deleting order:', err);
-            return res.status(500).json({ message: 'Error deleting order' });
+            console.error('Error getting tables:', err);
+            return res.status(500).json({ message: 'Error getting tables' });
         }
-        res.json({ message: 'Order deleted successfully' });
+        res.json(result);
     });
 });
-
-//----------------------------------------------------------------------------
 
 // อัปเดตสถานะโต๊ะ
 app.put('/tables/:tableId', (req, res) => {
     const { tableId } = req.params;
-    const { status } = req.body;
+    const { status, orderId } = req.body;
 
-    const sql = 'UPDATE tables SET status = ? WHERE id = ?';
-    db.query(sql, [status, tableId], (err, result) => {
+    if (!status) {
+        return res.status(400).json({ message: 'Status is required' });
+    }
+
+    const sql = 'UPDATE tables SET status = ?, orderId = ? WHERE id = ?';
+    db.query(sql, [status, orderId || null, tableId], (err, result) => {
         if (err) {
-            console.error('Error updating table status:', err);
-            return res.status(500).json({ message: 'Error updating table status' });
+            console.error('Error updating table:', err);
+            return res.status(500).json({ message: 'Error updating table', error: err.message });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Table not found' });
         }
         res.json({ message: 'Table status updated successfully' });
     });
 });
 
-// เพิ่มรายการจองโต๊ะ
-app.post('/tables', (req, res) => {
-    console.log('POST /tables route HIT - Backend Received Request!');
-    const { table_number, status, capacity } = req.body;
-    const sql = 'INSERT INTO tables (table_number, status, capacity) VALUES (?, ?, ?)'; // Adjust column names
-    const values = [table_number, status, capacity];
-
-    console.log("SQL:", sql);
-    console.log("Values:", values);
-
-    db.query(sql, values, (err, result) => {
+// อัปเดตสถานะ Order เป็น "cleared"
+app.put('/ordering/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    const sql = 'UPDATE ordering SET status = "cleared" WHERE id = ?';
+    db.query(sql, [orderId], (err, result) => {
         if (err) {
-            console.error('Error creating booking:', err);
-            return res.status(500).json({ message: 'Error creating booking: ' + err.message });
+            console.error('Error clearing order:', err);
+            return res.status(500).json({ message: 'Error clearing order' });
         }
-        console.log('Booking created successfully.  Table ID:', result.insertId);
+        res.json({ message: 'Order cleared successfully' });
+    });
+});
 
-        res.status(201).json({ message: 'Booking created successfully!', bookingId: result.insertId });
+// GET - ดึง Order (แก้ไข Filter)
+app.get('/ordering', (req, res) => {
+    const sql = 'SELECT * FROM ordering WHERE status != "cleared"'; // กรองเฉพาะที่ไม่ใช่ "cleared"
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error getting orders:', err);
+            return res.status(500).json({ message: 'Error getting orders' });
+        }
+        res.json(result);
     });
 });

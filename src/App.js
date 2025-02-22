@@ -23,7 +23,6 @@ import Info from './components/Sidebar/Info';
 import EmpInfo from './components/Sidebar/EmpInfo';
 import TableBooking from './components/Sidebar/TableBooking';
 
-
 function App() {
   const [userName, setUserName] = useState(localStorage.getItem('name') || '');
   const [memberType, setMemberType] = useState(localStorage.getItem('memberType') || '');
@@ -46,17 +45,12 @@ function App() {
       <Navbar userName={userName} setUserName={setUserName} />
       <BackToTop />
 
-      {/* แสดง Sidebar เฉพาะเมื่อ memberType เป็น 'idol' */}
-      {/* {memberType === 'idol' && <Cupid setCurrentPage={setCurrentPage} />} */}
-
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/menu" element={<Menus />} />
         <Route path="/reservation" element={<Reservation />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        {/* <Route path="/Profile/:id" element={<ProfilePage />} /> */}
-        {/* <Route path="/location/:location" element={<LocationDetail />} /> */}
         <Route path="/logincus" element={<LoginCus setUserName={setUserName} />} />
         <Route path="/emp" element={<LoginEmp setUserName={setUserName} setMemberType={setMemberType} />} />
         <Route path="/sidebar" element={<Sidebar />} />
@@ -69,8 +63,6 @@ function App() {
         <Route path="/editemp" element={<EmpInfo />} />
         <Route path="/table-booking" element={<TableBooking />} />
       </Routes>
-
-      {/* {memberType === 'idol' && renderPage()} */}
 
       <Footer />
     </Router>

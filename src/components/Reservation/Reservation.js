@@ -14,10 +14,10 @@ const OrderItem = ({ item, cartItem, menuItems }) => {
             <span className="foodname">{item.foodname} x {cartItem.quantity}</span>
             {!isDessert && (
                 <span className="spicinessLevel">
-                    {isDrink ? `ความหวาน: ${cartItem.sweetnessLevel || 'ไม่ระบุ'}` : `ความเผ็ด: ${cartItem.spicinessLevel || 'ไม่ระบุ'}`}
+                    {isDrink ? `Sweetness: ${cartItem.sweetnessLevel || 'ไม่ระบุ'}` : `Spicy: ${cartItem.spicinessLevel || 'ไม่ระบุ'}`}
                 </span>
             )}
-            <span className="additionalDetails">รายละเอียด: {cartItem.additionalDetails}</span>
+            <span className="additionalDetails">Details: {cartItem.additionalDetails}</span>
         </div>
     )
 }
@@ -195,7 +195,7 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
                                 <span className="foodname">{foodName}</span>
                                 {!isDessert && (
                                     <span className="spicinessLevel">
-                                        {isDrink ? `ความหวาน: ${sweetnessOrSpiciness}` : `ความเผ็ด: ${sweetnessOrSpiciness}`}
+                                        {isDrink ? `Sweetness: ${sweetnessOrSpiciness}` : `Spicy: ${sweetnessOrSpiciness}`}
                                     </span>
                                 )}
                                 <span className="additionalDetails">{additionalDetails}</span>
@@ -449,7 +449,7 @@ function Reservation() {
     return (
         <div className="container">
             <div className="reservation-container">
-                <h1>MAKE A RESERVARION</h1>
+                <h1>MAKE A RESERVATION</h1>
                 <div className="reservation-box">
                     {error && <div className="error">Error: {error}</div>}
                     {showResult ? (

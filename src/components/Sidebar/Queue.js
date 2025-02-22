@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo} from 'react';
 import axios from 'axios';
 import '../CSS/Queue.css';
 import Sidebar from './Sidebar';
@@ -15,17 +15,21 @@ const OrderItem = ({ itemId, cartItem, getFoodName }) => {
 
 const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
     const handleAccept = () => {
-        onAccept(order);
+        if (onAccept) onAccept(order);
+    };
+
+    const handleClear = () => {
+        if (onClear) onClear(order.id);
     };
 
     const formattedFoodname = useMemo(() => {
         if (!order?.reservationDetails?.foodname) return "ไม่มี";
         try {
             return typeof order?.reservationDetails?.foodname === "string"
-                ? formattedFoodname.split('\n').map((item, index) => (
+                ? order.reservationDetails.foodname.split('\n').map((item, index) => (
                     <label key={index}>{item}<br /></label>
                 ))
-                : <label>{formattedFoodname}</label>
+                : <label>{order.reservationDetails.foodname}</label>
         } catch (e) {
             return order.reservationDetails.foodname;
         }
@@ -52,9 +56,7 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
             <div className="queue-info">
                 <span className="queue-name">👤 {order.reservationDetails.name} ({order.reservationDetails.numPeople} คน)</span>
                 <label>🍽️ รายการอาหาร : </label>
-                {formattedFoodname.split('\n').map((item, index) => (
-                    <label key={index}>{item}<br /></label>
-                ))}
+                {formattedFoodname}
                 <label>🕒 วัน/เวลา : {formattedArrivalTime}</label>
                 <label>📞 เบอร์โทร : {order?.reservationDetails?.user_phone || "ไม่มีข้อมูล"}</label>
                 <div className="queue-order">
@@ -64,11 +66,19 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
                 </div>
             </div>
             {isAccepted ? (
-                <button className="order-button order-button-clear" onClick={() => onClear(order.id)}>
+                <button
+                    className="order-button order-button-clear"
+                    onClick={handleClear}
+                    disabled={!onClear}
+                >
                     เคลียร์
                 </button>
             ) : (
-                <button className="order-button order-button-accepted" onClick={handleAccept}>
+                <button
+                    className="order-button order-button-accepted"
+                    onClick={handleAccept}
+                    disabled={!onAccept}
+                >
                     รับออเดอร์
                 </button>
             )}
@@ -79,24 +89,20 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
 const Queue = () => {
     const [queueData, setQueueData] = useState([]);
     const [acceptedQueueData, setAcceptedQueueData] = useState([]);
-    const acceptedQueueDataRef = useRef([]);
     const [menuItems, setMenuItems] = useState([]);
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-
-    const initialTables = [
-        { id: 1, isBooked: false, capacity: 3, orderId: null },
-        { id: 2, isBooked: false, capacity: 3, orderId: null },
-        { id: 3, isBooked: false, capacity: 4, orderId: null },
-        { id: 4, isBooked: false, capacity: 3, orderId: null },
-        { id: 5, isBooked: false, capacity: 3, orderId: null },
-        { id: 6, isBooked: false, capacity: 3, orderId: null },
-        { id: 7, isBooked: false, capacity: 4, orderId: null },
-    ];
-
-    const [tables, setTables] = useState(initialTables);
+    const [tables, setTables] = useState([]);
+    const [userData, setUserData] = useState({
+        name: '',
+        lastname: '',
+        position: '',
+        phone: '',
+        birthdate: '',
+        email: '',
+        password: '',
+    });
 
     const getFoodName = useCallback(
         (itemId) => menuItems.find((item) => item.id === parseInt(itemId, 10))?.foodname || "Unknown",
@@ -113,65 +119,62 @@ const Queue = () => {
         }
     }, []);
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const response = await axios.get('http://localhost:8081/ordering');
             const allOrders = response.data;
+            const pendingOrders = allOrders.filter((order) => order.status !== 'booked' && order.status !== 'cleared');
+            const bookedOrders = allOrders.filter((order) => order.status === 'booked');
 
-            // แยกข้อมูลตามสถานะ
-            const pendingOrders = allOrders.filter((order) => order.status !== 'booked');  // คิวใหม่
-            const bookedOrders = allOrders.filter((order) => order.status === 'booked');  // คิวรับแล้ว
-
-            setQueueData(pendingOrders);  // ข้อมูลคิวใหม่
-            acceptedQueueDataRef.current = bookedOrders;  // คิวรับแล้ว
-            setAcceptedQueueData(bookedOrders);  // ข้อมูลคิวรับแล้ว
+            setQueueData(pendingOrders);
+            setAcceptedQueueData(bookedOrders);
         } catch (error) {
             setError('ไม่สามารถดึงข้อมูลออเดอร์ได้');
             console.error('Error fetching orders:', error);
         }
-    };
+    }, []);
 
-    const handleAcceptOrder = async (order) => {
+    const handleAcceptOrder = useCallback((order) => {
         navigate(`/table-booking`, { state: { order, tables } });
-    };
+    }, [navigate, tables]);
 
     const handleClearOrder = useCallback(async (orderId) => {
-        console.log("handleClearOrder called with orderId:", orderId); // เพิ่มตรงนี้
+        console.log('Attempting to clear order:', orderId);
+        console.log('Current tables state:', tables);
         try {
-            await axios.delete(`http://localhost:8081/ordering/${orderId}`);
-    
-            // Find the table associated with this order
-            const tableToUpdate = tables.find((table) => table.orderId === orderId);
-    
+            const tableToUpdate = tables.find((table) =>
+                table.orderId === Number(orderId) || table.orderId === orderId
+            );
+            console.log('Table to update:', tableToUpdate);
+
             if (tableToUpdate) {
-                console.log("Table to update:", tableToUpdate); // เพิ่มตรงนี้
-                // Update the status of the table to "available" in the database
-                try {
-                  await axios.put(
-                    `http://localhost:8081/tables/${tableToUpdate.id}`,
-                    {
-                      status: "available",
-                    }
-                  );
-                  console.log("Table status update successful"); // เพิ่มตรงนี้
-    
-                   //Update the local state of the tables
-                   setTables((prevTables) =>
-                   prevTables.map((table) =>
-                     table.id === tableToUpdate.id
-                       ? { ...table, isBooked: false, orderId: null }
-                       : table
-                   )
-                 );
-                 console.log("Table update successful"); // เพิ่มตรงนี้
-    
-                } catch (updateError) {
-                  console.error("Error updating table status:", updateError);
-                }
+                // อัปเดตสถานะโต๊ะเป็น available และล้าง orderId
+                await axios.put(`http://localhost:8081/tables/${tableToUpdate.id}`, {
+                    status: "available",
+                    orderId: null
+                });
+
+                await axios.put(`http://localhost:8081/ordering/${orderId}`, {
+                    status: "cleared"
+                });
+
+                // ซ่อนรายการจากคิวรับแล้ว
+                setAcceptedQueueData(prev =>
+                    prev.filter(order => order.id !== orderId)
+                );
+
+                // อัปเดต state ของ tables
+                setTables(prev =>
+                    prev.map(table =>
+                        table.id === tableToUpdate.id
+                            ? { ...table, status: "available", orderId: null }
+                            : table
+                    ));
+            } else {
+                setError("ไม่พบโต๊ะที่ต้องการเคลียร์");
+                console.error(`ไม่พบโต๊ะสำหรับ orderId ${orderId}`);
+                console.log('Tables structure:', tables.map(t => ({ id: t.id, orderId: t.orderId, status: t.status })));
             }
-    
-            await fetchOrders();
-            console.log("Orders fetched successfully"); // เพิ่มตรงนี้
         } catch (err) {
             setError("ไม่สามารถเคลียร์คิวได้");
             console.error("Error clearing order:", err);
@@ -184,23 +187,53 @@ const Queue = () => {
 
         const intervalId = setInterval(() => {
             fetchOrders();
-        }, 3000);
+        }, 5000);
 
         return () => clearInterval(intervalId);
-    }, [fetchMenuItems]);
+    }, [fetchMenuItems, fetchOrders]);
 
     useEffect(() => {
         if (location.state?.tables) {
-            console.log("update table success");
-            setTables(location.state.tables); // อัปเดตตารางจาก TableBooking
+            console.log("Received tables in Queue:", location.state.tables);
+            setTables(location.state.tables);
         }
     }, [location.state?.tables]);
 
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        const storedPassword = localStorage.getItem('password');
+    
+        if (!storedEmail || !storedPassword) {
+            navigate('/emp', { replace: true });
+            return;
+        }
+    
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
+                if (response.data && response.data.password === storedPassword) {
+                    setUserData(response.data);
+                } else {
+                    console.error("Unauthorized access");
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('password');
+                    navigate('/emp', { replace: true });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                localStorage.removeItem('email');
+                localStorage.removeItem('password');
+                navigate('/emp', { replace: true });
+            }
+        };
+    
+        fetchUserData();
+    }, [navigate]);
+    
     return (
         <div className="layout">
             <Sidebar />
             <div className="queue-container">
-                {/* คิวใหม่ (ข้อมูลที่ไม่มีสถานะ 'booked') */}
                 <div className="queue-section">
                     <h2>คิวใหม่</h2>
                     {queueData.length > 0 ? (
@@ -210,6 +243,7 @@ const Queue = () => {
                                 order={order}
                                 getFoodName={getFoodName}
                                 onAccept={handleAcceptOrder}
+                                isAccepted={false}
                             />
                         ))
                     ) : (
@@ -224,14 +258,14 @@ const Queue = () => {
                             <QueueItem
                                 key={order.id}
                                 order={order}
-                                isAccepted={true}
+                                getFoodName={getFoodName}
                                 onClear={handleClearOrder}
+                                isAccepted={true}
                             />
                         ))
                     ) : (
                         <div>ไม่มีคิวรับแล้ว</div>
                     )}
-
                 </div>
             </div>
         </div>

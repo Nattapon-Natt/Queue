@@ -78,7 +78,7 @@ function ProfileMenu() {
                 <div className="row justify-content-center">
                     <div className="col-md-4 col-lg-3 text-center">
                         <Link className="back-menu" to="/menu">
-                            <img src="/assets/pic/idol-arrow.png" alt="Back to Menu" />
+                            <img src="/assets/pic/icon/idol-arrow.png" alt="Back to Menu" />
                             กลับหน้าเมนู
                         </Link>
                     </div>

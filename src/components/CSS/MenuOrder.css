@@ -1,4 +1,8 @@
 /* 1 */
+.menu-item h3{
+    font-size: 1.25rem;
+}
+
 .menu-container {
     padding: 20px;
     max-width: 1200px;
@@ -9,14 +13,7 @@
 }
 
 .menu-container h2 {
-    margin-top: 30px;
-}
-
-.menu-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
+    margin-top: 20px;
 }
 
 .menu-navbar {
@@ -43,13 +40,10 @@
 
 .menu-navbar button:hover {
     background-color: #e0e0e0;
-    /* Lighter background on hover */
 }
-
 
 .menu-navbar button.active {
     background-color: #4CAF50;
-    /* Green background for active button */
     color: white;
     border-color: #4CAF50;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -57,9 +51,7 @@
 
 .menu-navbar button:focus {
     outline: none;
-    /* Remove default focus outline */
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4);
-    /* add a subtle focus effect */
 }
 
 .menu-grid {

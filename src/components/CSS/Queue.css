@@ -19,7 +19,6 @@
     color: white;
     font-family: 'kanit';
     margin-top: 5rem;
-    height: 100%;
     width: 100%;
 }
 
@@ -30,6 +29,7 @@
     background-color: #112240;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 100%;
 }
 
 .queue-section h2 {

@@ -5,6 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function Info() {
+    const [isEditing, setIsEditing] = useState(false);
+    const navigate = useNavigate();
+    const [telError, setTelError] = useState('');
+    const location = useLocation();
     const [userData, setUserData] = useState({
         name: '',
         lastname: '',
@@ -15,40 +19,36 @@ function Info() {
         password: '',
     });
 
-    const [isEditing, setIsEditing] = useState(false);
-    const navigate = useNavigate();
-    const [telError, setTelError] = useState('');
-    const location = useLocation();
-
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
-        if (!storedEmail && location.pathname === '/info') { 
+        const storedPassword = localStorage.getItem('password');
+
+        if (!storedEmail || !storedPassword) {
             navigate('/emp', { replace: true });
             return;
         }
 
-        if (storedEmail) {
-            fetchUserData(storedEmail);
-        }
-
-    }, [navigate,location]);
-
-    const fetchUserData = async (email) => {
-        try {
-            const response = await axios.get(`http://localhost:8081/profile/emp?email=${email}`);
-            if (response.data) {
-                setUserData(response.data); // ตั้งค่าข้อมูลหากมีอีเมล
-            } else {
-                console.error("User data not found");
-                setUserData(null); // รีเซ็ตข้อมูลหากไม่พบ
-                navigate('/emp');
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
+                if (response.data && response.data.password === storedPassword) {
+                    setUserData(response.data);
+                } else {
+                    console.error("Unauthorized access");
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('password');
+                    navigate('/emp', { replace: true });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                localStorage.removeItem('email');
+                localStorage.removeItem('password');
+                navigate('/emp', { replace: true });
             }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            setUserData(null); // รีเซ็ตข้อมูลเมื่อเกิดข้อผิดพลาด
-            navigate('/emp');
-        }
-    };
+        };
+
+        fetchUserData();
+    }, [navigate]);
     
     const handleInputChange = (e) => {
         const { name, value } = e.target;

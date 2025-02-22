@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 0 10rem;
     font-family: 'kanit';
     width: 100%;
     max-width: 1200px;
@@ -27,6 +27,34 @@
 
 .table-item.booked {
     background-color: #d3ffd3;
+}
+
+.table-item {
+    border: 1px solid #ccc;
+    padding: 15px;
+    text-align: center;
+    min-width: 150px;
+}
+
+.table-item.booked {
+    background-color: #f0f0f0;
+}
+
+.table-item button {
+    padding: 8px 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.table-item.booked button {
+    background-color: #f44336;
+}
+
+.table-item button:hover {
+    opacity: 0.8;
 }
 
 @media (max-width: 768px) {

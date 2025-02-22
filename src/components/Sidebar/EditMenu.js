@@ -32,34 +32,35 @@ function EditMenu() {
 
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
-        if (!storedEmail && location.pathname === '/editmenu') {
+        const storedPassword = localStorage.getItem('password');
+
+        if (!storedEmail || !storedPassword) {
             navigate('/emp', { replace: true });
             return;
         }
 
-        if (storedEmail) {
-            fetchUserData(storedEmail);
-        }
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
+                if (response.data && response.data.password === storedPassword) {
+                    setUserData(response.data);
+                } else {
+                    console.error("Unauthorized access");
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('password');
+                    navigate('/emp', { replace: true });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                localStorage.removeItem('email');
+                localStorage.removeItem('password');
+                navigate('/emp', { replace: true });
+            }
+        };
 
         fetchMenu();
-    }, [navigate, location]);
-
-    const fetchUserData = async (email) => {
-        try {
-            const response = await axios.get(`http://localhost:8081/profile/emp?email=${email}`);
-            if (response.data) {
-                setUserData(response.data);
-            } else {
-                console.error("User data not found");
-                setUserData(null);
-                navigate('/emp');
-            }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-            setUserData(null);
-            navigate('/emp');
-        }
-    };
+        fetchUserData();
+    }, [navigate]);
 
     // ดึงข้อมูลเมนูจากเซิร์ฟเวอร์
     const fetchMenu = async () => {
@@ -97,7 +98,6 @@ function EditMenu() {
                 imageInputRef.current.value = '';
             }
 
-
             setNewMenuItem((prev) => ({ ...prev, foodname: '', price: '', detail: '', image: null, category: 'อาหารหลัก' }));
             setPreviewImage(null);
             fetchMenu();
@@ -108,7 +108,6 @@ function EditMenu() {
         }
         fetchMenu();
     };
-
 
     // ลบเมนู
     const handleDeleteMenu = async (id) => {
@@ -164,7 +163,6 @@ function EditMenu() {
             }
             formData.append('category', newMenuItem.category);
 
-
             await axios.put(`http://localhost:8081/menu/${editingItemId}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -181,17 +179,20 @@ function EditMenu() {
         }
         fetchMenu();
     };
+
     // รูป
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setNewMenuItem((prev) => ({ ...prev, image: file }));
         setPreviewImage(URL.createObjectURL(file));
     };
+
     // จัดการการเปลี่ยนแปลงของ input
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewMenuItem((prev) => ({ ...prev, [name]: value }));
     };
+
     const handleCategoryChange = (e) => {
         const { value } = e.target;
         setNewMenuItem((prev) => ({ ...prev, category: value }));
