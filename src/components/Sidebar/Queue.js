@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo} from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import '../CSS/Queue.css';
 import Sidebar from './Sidebar';
@@ -13,13 +13,21 @@ const OrderItem = ({ itemId, cartItem, getFoodName }) => {
     );
 };
 
-const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
+const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted, onCancel }) => {
     const handleAccept = () => {
         if (onAccept) onAccept(order);
     };
 
     const handleClear = () => {
-        if (onClear) onClear(order.id);
+        if (window.confirm(`ต้องการเคลียร์ออเดอร์นี้สำหรับ ${order.reservationDetails.name} หรือไม่?`)) {
+            if (onClear) onClear(order.id);
+        }
+    };
+
+    const handleCancel = () => {
+        if (window.confirm(`ต้องการยกเลิกออเดอร์นี้สำหรับ ${order.reservationDetails.name} หรือไม่?`)) {
+            if (onCancel) onCancel(order.id);
+        }
     };
 
     const formattedFoodname = useMemo(() => {
@@ -51,10 +59,17 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
         }
     }, [order?.reservationDetails?.ArrivalTime]);
 
+    // Ensure numPeople is properly extracted and displayed
+    const numPeople = order?.reservationDetails?.numPeople || "ไม่ระบุ";
+
     return (
         <div className="queue-item">
             <div className="queue-info">
-                <span className="queue-name">👤 {order.reservationDetails.name} ({order.reservationDetails.numPeople} คน)</span>
+                <span className="queue-name">
+                    👤   {order.customerName
+                        ? `${order.customerName} ${order.employeeName ? `(จองโดย : ${order.reservationDetails?.name})` : ''}`
+                        : order.reservationDetails?.name} ({numPeople} คน)
+                </span>
                 <label>🍽️ รายการอาหาร : </label>
                 {formattedFoodname}
                 <label>🕒 วัน/เวลา : {formattedArrivalTime}</label>
@@ -65,23 +80,34 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted }) => {
                     ))}
                 </div>
             </div>
-            {isAccepted ? (
-                <button
-                    className="order-button order-button-clear"
-                    onClick={handleClear}
-                    disabled={!onClear}
-                >
-                    เคลียร์
-                </button>
-            ) : (
-                <button
-                    className="order-button order-button-accepted"
-                    onClick={handleAccept}
-                    disabled={!onAccept}
-                >
-                    รับออเดอร์
-                </button>
-            )}
+            <div className="queue-buttons">
+                {isAccepted ? (
+                    <button
+                        className="order-button order-button-clear"
+                        onClick={handleClear}
+                        disabled={!onClear}
+                    >
+                        เคลียร์
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            className="order-button order-button-accepted"
+                            onClick={handleAccept}
+                            disabled={!onAccept}
+                        >
+                            รับออเดอร์
+                        </button>
+                        <button
+                            className="order-button order-button-cancel"
+                            onClick={handleCancel}
+                            disabled={!onCancel}
+                        >
+                            ยกเลิก
+                        </button>
+                    </>
+                )}
+            </div>
         </div>
     );
 };
@@ -139,8 +165,6 @@ const Queue = () => {
     }, [navigate, tables]);
 
     const handleClearOrder = useCallback(async (orderId) => {
-        console.log('Attempting to clear order:', orderId);
-        console.log('Current tables state:', tables);
         try {
             const tableToUpdate = tables.find((table) =>
                 table.orderId === Number(orderId) || table.orderId === orderId
@@ -181,6 +205,16 @@ const Queue = () => {
         }
     }, [tables]);
 
+    const handleCancelOrder = useCallback(async (orderId) => {
+        try {
+            await axios.delete(`http://localhost:8081/ordering/${orderId}`);
+            setQueueData(prev => prev.filter(order => order.id !== orderId));
+        } catch (err) {
+            setError("ไม่สามารถยกเลิกออเดอร์ได้");
+            console.error("Error canceling order:", err);
+        }
+    }, []);
+
     useEffect(() => {
         fetchMenuItems();
         fetchOrders();
@@ -202,12 +236,12 @@ const Queue = () => {
     useEffect(() => {
         const storedEmail = localStorage.getItem('email');
         const storedPassword = localStorage.getItem('password');
-    
+
         if (!storedEmail || !storedPassword) {
             navigate('/emp', { replace: true });
             return;
         }
-    
+
         const fetchUserData = async () => {
             try {
                 const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
@@ -226,10 +260,10 @@ const Queue = () => {
                 navigate('/emp', { replace: true });
             }
         };
-    
+
         fetchUserData();
     }, [navigate]);
-    
+
     return (
         <div className="layout">
             <Sidebar />
@@ -243,6 +277,7 @@ const Queue = () => {
                                 order={order}
                                 getFoodName={getFoodName}
                                 onAccept={handleAcceptOrder}
+                                onCancel={handleCancelOrder}
                                 isAccepted={false}
                             />
                         ))

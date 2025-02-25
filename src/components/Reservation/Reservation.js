@@ -51,11 +51,36 @@ function ReservationForm({
     isDisabled,
     minDate,
     loggedInUser,
+    customerName,
+    setCustomerName,
+    isEmployee,
+    customerPhone,
+    setCustomerPhone
 }) {
     return (
         <div className="first">
             <h2>Reserve</h2>
             <p>Welcome, {loggedInUser === 'Guest' ? 'Guest' : loggedInUser} !</p>
+            {isEmployee && ( // Conditionally render the customer name input
+                <>
+                    <p>Enter Customer Name:</p>
+                    <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="people-input"
+                        placeholder="Customer Name"
+                    />
+                    <p>Enter Customer Phone:</p>
+                    <input
+                        type="text"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="people-input"
+                        placeholder="Customer Phone Number"
+                    />
+                </>
+            )}
             <p>Enter the number of people</p>
             <input
                 type="number"
@@ -106,8 +131,8 @@ function ReservationForm({
     );
 }
 
-function ReservationSummary({ reservationDetails, menuItems, setShowSummary, handleConfirm, setReservationDetails, phone, setPhone }) {
-    const [localPhone, setLocalPhone] = useState(phone || '');
+function ReservationSummary({ reservationDetails, menuItems, setShowSummary, handleConfirm, setReservationDetails, phone, setPhone, customerName, isEmployee, customerPhone }) {
+    const [localPhone, setLocalPhone] = useState(customerPhone || phone || '');
 
     const handleGoBack = () => {
         setReservationDetails(prevDetails => ({
@@ -116,11 +141,13 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
         }))
         setPhone(localPhone);
         setShowSummary(false);
-
     };
+
     return (
         <div>
             <h1>Booking Summary</h1>
+            {isEmployee && <p>Customer Name: {customerName}</p>}
+            {isEmployee && <p>Customer Phone: {customerPhone}</p>}
             {reservationDetails?.cartItems && Object.keys(reservationDetails.cartItems).length > 0 ? (
                 <div className="sum-reservation">
                     <h4>Order</h4>
@@ -151,7 +178,10 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
                         <p>Name : {reservationDetails?.name || 'ไม่มีข้อมูล'}</p>
                         <p>Quantity : {reservationDetails?.numPeople || 'ไม่มีข้อมูล'}</p>
                         <p>Tel : {localPhone}</p>
-                        <p>Email : {reservationDetails?.email || 'ไม่มีข้อมูล'}</p>
+                        {/* Conditionally render Email only for non-employees */}
+                        {!isEmployee && (
+                            <p>Email : {reservationDetails?.email || 'ไม่มีข้อมูล'}</p>
+                        )}
                     </li>
                 </ul>
                 <p>Date: {reservationDetails?.selectedDate}</p>
@@ -170,7 +200,7 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
     );
 }
 
-function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems }) {
+function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone }) {
     const foodname = JSON.parse(localStorage.getItem('foodname') || '[]');
     const { bookingDate = 'N/A', bookingTime = 'N/A' } = JSON.parse(localStorage.getItem('reservationTime') || '{}');
     const { name = 'N/A', numPeople = 'N/A' } = JSON.parse(localStorage.getItem('reservationDetails') || '{}');
@@ -179,6 +209,8 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
     return (
         <div className="result-box">
             <h2>Successfully reserved the queue</h2>
+            <p>Customer Name: {customerName}</p> {/* Conditionally display customer name */}
+            <p>Customer Phone: {customerPhone}</p> {/* Conditionally display customer phone */}
             <p>Your queue has been entered into the system.</p>
             <p>Your Name: {name} ({numPeople}P)</p>
             <p>Your Order:</p>
@@ -233,6 +265,9 @@ function Reservation() {
     const [bookedSlots, setBookedSlots] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
+    const [customerName, setCustomerName] = useState('');
+    const [isEmployee, setIsEmployee] = useState(false);
+    const [customerPhone, setCustomerPhone] = useState('');
 
     const fetchMenuItems = useCallback(async () => {
         try {
@@ -245,8 +280,30 @@ function Reservation() {
     }, []);
 
     useEffect(() => {
-        setLoggedInUser(localStorage.getItem('name') || 'Guest');
-        setPhone(localStorage.getItem('phone') || '');
+        const storedEmail = localStorage.getItem('email'); //get employee email
+        const storedPassword = localStorage.getItem('password');
+
+        if(storedEmail && storedPassword){
+            axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`)
+            .then(response => {
+                if (response.data && response.data.password === storedPassword){
+                    setIsEmployee(true)
+                    setLoggedInUser(localStorage.getItem('name') || 'Guest');
+                    setPhone(localStorage.getItem('phone') || '');
+                }else{
+                    setIsEmployee(false)
+                    setLoggedInUser(localStorage.getItem('name') || 'Guest');
+                    setPhone(localStorage.getItem('phone') || '');
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching employee data:", error);
+            })
+        }else{
+            setIsEmployee(false)
+            setLoggedInUser(localStorage.getItem('name') || 'Guest');
+            setPhone(localStorage.getItem('phone') || '');
+        }
         fetchMenuItems();
 
         const storedShowResult = localStorage.getItem('showResult') === 'true';
@@ -263,6 +320,8 @@ function Reservation() {
             setSelectedDate(reservationDetails.selectedDate);
             setSelectedTime(reservationDetails.selectedTime);
             setNumPeople(reservationDetails.numPeople);
+            setCustomerName(reservationDetails.customerName || '');
+            setCustomerPhone(reservationDetails.customerPhone || '');
             return;
         }
 
@@ -315,12 +374,14 @@ function Reservation() {
             cartItems: {},
             selectedDate: selectedDate,
             selectedTime: selectedTime,
+            customerName: customerName,
+            customerPhone: customerPhone,
         };
 
         setReservationDetails(updatedReservationDetails);
+        localStorage.setItem('reservationDetails', JSON.stringify(updatedReservationDetails));
 
         if (order) {
-            localStorage.setItem('reservationDetails', JSON.stringify(updatedReservationDetails));
             navigate(`/menu-order`, { state: { reservationDetails: updatedReservationDetails } });
             setShowSummary(false);
         } else {
@@ -368,23 +429,25 @@ function Reservation() {
                 }).join('\n'),
             BookTime: formattedTime.bookingDate,
             ArrivalTime: format(new Date(selectedDateTime), 'yyyy-MM-dd HH:mm'),
-            user_phone: reservationDetails.phone,
+            user_phone: isEmployee ? customerPhone : reservationDetails.phone,
             selectedTime: selectedTime,
+            customerName: customerName,
+            employeeName: localStorage.getItem('name'),
         };
 
         try {
             await axios.post('http://localhost:8081/ordering', { orders: [orderDataForDB] });
-    
+
             localStorage.setItem('queueNumber', queue);
             localStorage.setItem('reservationTime', JSON.stringify(formattedTime));
             localStorage.setItem('reservationDetails', JSON.stringify({ ...reservationDetails, selectedTime, numPeople: reservationDetails.numPeople }));
             localStorage.setItem('foodname', JSON.stringify(Object.keys(reservationDetails?.cartItems || {}).length > 0 ? orderDataForDB.foodname.split('\n') : []));
-    
+
             setQueueCounterA(prev => parseInt(reservationDetails.numPeople, 10) < 4 ? prev + 1 : prev);
             setQueueCounterB(prev => parseInt(reservationDetails.numPeople, 10) >= 4 ? prev + 1 : prev);
             setBookedSlots(prevBookedSlots => ({ ...prevBookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
             localStorage.setItem('bookedSlots', JSON.stringify({ ...bookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
-    
+
             setShowSummary(false);
             setShowResult(true);
             localStorage.setItem('showResult', 'true');
@@ -402,7 +465,9 @@ function Reservation() {
         bookedSlots,
         menuItems,
         phone,
-        fetchMenuItems
+        customerName,
+        isEmployee,
+        customerPhone
     ]);
 
     const handleBackToHome = () => {
@@ -457,6 +522,9 @@ function Reservation() {
                             menuItems={menuItems}
                             handleBackToHome={handleBackToHome}
                             handleClearReservation={handleClearReservation}
+                            customerName={customerName}
+                            isEmployee={isEmployee}
+                            customerPhone={customerPhone}
                         />
                     ) : showSummary ? (
                         <ReservationSummary
@@ -467,6 +535,9 @@ function Reservation() {
                             setReservationDetails={setReservationDetails}
                             phone={phone}
                             setPhone={setPhone}
+                            customerName={customerName}
+                            isEmployee={isEmployee}
+                            customerPhone={customerPhone}
                         />
                     ) : (
                         <ReservationForm
@@ -483,6 +554,11 @@ function Reservation() {
                             isDisabled={isDisabled}
                             minDate={minDate}
                             loggedInUser={loggedInUser}
+                            customerName={customerName}
+                            setCustomerName={setCustomerName}
+                            isEmployee={isEmployee}
+                            customerPhone={customerPhone}
+                            setCustomerPhone={setCustomerPhone}
                         />
                     )}
                 </div>

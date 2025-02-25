@@ -37,10 +37,6 @@
     text-align: center;
 }
 
-.queue-list {
-    padding: 10px;
-}
-
 .queue-item {
     display: flex;
     justify-content: space-between;
@@ -77,9 +73,13 @@
     color: #fff;
 }
 
+.queue-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
 .order-button {
-    background-color: #4CAF50;
-    color: white;
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
@@ -87,16 +87,26 @@
 }
 
 .order-button-accepted {
-    background-color: #777;
+    background-color: #4CAF50;
+    color: white;
 }
 
-.queue-number {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-right: 10px;
-    display: inline-block;
+.order-button-accepted:hover{
+    background-color: #288c2b;
+    color: white;
 }
 
+.order-button-cancel, .order-button-clear {
+    background-color: #f44336;
+    color: white;
+}
+
+.order-button-cancel:hover, .order-button-clear:hover {
+    background-color: #da190b;
+    color: white;
+}
+
+/* Media Queries - Minimal Changes to Keep Functionality */
 @media (max-width: 1200px) {
     .queue-container {
         flex-direction: column;
@@ -110,37 +120,13 @@
 }
 
 @media (max-width: 768px) {
-    .queue-container {
-        padding: 10px;
-    }
-
-    .queue-section {
-        padding: 15px;
-    }
-
     .queue-item {
         flex-direction: column;
         align-items: flex-start;
     }
-
-    .queue-item button {
-        margin-top: 10px;
-    }
 }
 
 @media (max-width: 480px) {
-    .queue-container {
-        padding: 5px;
-    }
-
-    .queue-section {
-        padding: 10px;
-    }
-
-    .queue-item {
-        padding: 10px;
-    }
-
     .queue-item button {
         width: 100%;
     }

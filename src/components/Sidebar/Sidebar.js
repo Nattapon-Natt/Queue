@@ -22,6 +22,9 @@ function Sidebar() {
                     <li>
                         <Link to="/editemp">Employee</Link>
                     </li>
+                     <li>
+                        <Link to="/Reservation">Reservation</Link>
+                    </li>
                 </ul>
             </div>
         // </div>

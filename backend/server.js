@@ -549,14 +549,14 @@ app.post('/ordering', async (req, res) => {
         for (const order of orders) {
             console.log('Processing order:', order);
             try {
-                const { user_name, foodname, BookTime, ArrivalTime, user_phone } = order;
-                if (!user_name || !foodname || !BookTime || !ArrivalTime) {
+                const { user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName } = order;
+                if (!user_name || !BookTime || !ArrivalTime) {
                     return res.status(400).json({ error: 'Missing required fields in an order.' });
                 }
                 await new Promise((resolve, reject) => {
                     db.query(
-                        'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone) VALUES (?, ?, ?, ?, ?)',
-                        [user_name, foodname, BookTime, ArrivalTime, user_phone],
+                        'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        [user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName],
                         (error, results) => {
                             if (error) {
                                 console.error('Error inserting ordering data:', error);
@@ -583,55 +583,58 @@ app.post('/ordering', async (req, res) => {
 
 // ดึงข้อมูลมาแสดงหน้าคิว
 app.get('/ordering', (req, res) => {
-    const sql = "SELECT * FROM ordering"; // Query SQL
+    const sql = "SELECT * FROM ordering"; // SQL query
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Error fetching ordering data from DB:", err);
             return res.status(500).json({ message: "Error fetching ordering data" });
         }
 
-        // Log ข้อมูลที่ดึงมาจากฐานข้อมูล
+        // Log the data retrieved from the database
         console.log("Data from DB:", results);
 
         const formattedOrders = results.map(order => {
             let orderDetails = [];
             try {
-                // ตรวจสอบและแปลง order_details เป็น JSON
+                // Check and convert order_details to JSON
                 if (order.order_details && typeof order.order_details === 'string') {
                     orderDetails = JSON.parse(order.order_details);
                 }
             } catch (error) {
                 console.error("Error parsing order_details:", error, "for order id:", order.id);
-                orderDetails = []; // ตั้งค่าเริ่มต้นให้เป็น array ว่าง
+                orderDetails = []; // Set default to an empty array
             }
 
-            // แปลง orderDetails ให้มีโครงสร้างที่ต้องการ
+            // Convert orderDetails to the desired structure
             const items = Array.isArray(orderDetails) ? orderDetails.map(item => ({
-                itemId: item.itemId || null, // ใช้ค่า null หากไม่มี itemId
-                quantity: item.quantity || 0, // ใช้ค่า 0 หากไม่มี quantity
-                spicinessLevel: item.spicinessLevel || "ไม่ระบุ", // ใช้ค่าเริ่มต้น
+                itemId: item.itemId || null, // Use null if no itemId
+                quantity: item.quantity || 0, // Use 0 if no quantity
+                spicinessLevel: item.spicinessLevel || "ไม่ระบุ", // Use default
                 additionalDetails: item.additionalDetails || ""
             })) : [];
 
-            // คืนค่ารูปแบบใหม่
+            // Returns the new format
             return {
                 id: order.id,
-                queueNumber: order.id, // ใช้ id เป็น queueNumber
+                queueNumber: order.id, // Use id as queueNumber
                 reservationDetails: {
-                    name: order.user_name || "Unknown", // ใช้ค่า "Unknown" หากไม่มี user_name
-                    numPeople: 1, // ค่าเริ่มต้น
+                    name: order.user_name || "Unknown", // Use "Unknown" if no user_name
+                    numPeople: 1, // default
                     foodname: order.foodname || "ไม่ระบุ",
                     ArrivalTime: order.ArrivalTime || "Unknown",
                     user_phone: order.user_phone || "No phone"
                 },
-                items: items, // รายการอาหาร
-                status: order.status || "Pending" // ใช้ "Pending" หากไม่มีสถานะ
+                items: items, // food list
+                status: order.status || "Pending", // Use "Pending" if no status
+                customerName: order.customerName || null,
+                employeeName: order.employeeName || null,
+                user_name: order.user_name || 'ไม่ระบุ'
             };
         });
 
-        // Log ข้อมูลที่ถูกจัดรูปแบบ
+        // Log formatted data
         console.log("Formatted data:", formattedOrders);
-        res.status(200).json(formattedOrders); // ส่งข้อมูลกลับไปยัง client
+        res.status(200).json(formattedOrders); // Send data back to client
     });
 });
 
@@ -647,6 +650,25 @@ app.put("/ordering/:id", async (req, res) => {
         console.error(error);
         res.status(500).send({ error: "Failed to update order" });
     }
+});
+
+// ลบรายการจอง
+app.delete('/ordering/:id', (req, res) => {
+    const { id } = req.params;
+    const deleteSql = "DELETE FROM ordering WHERE id = ?";
+
+    db.query(deleteSql, [id], (deleteErr, result) => {
+        if (deleteErr) {
+            console.error("Error deleting ordering:", deleteErr);
+            return res.status(500).json({ message: "Error deleting ordering." });
+        }
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: "Ordering deleted successfully." });
+        } else {
+            res.status(404).json({ message: "Ordering not found." });
+        }
+    });
 });
 
 //----------------------------------------------------------------------------
