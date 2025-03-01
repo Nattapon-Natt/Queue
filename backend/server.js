@@ -730,3 +730,182 @@ app.get('/ordering', (req, res) => {
         res.json(result);
     });
 });
+
+// ------------------------------------------------------------------------
+
+// ดึง ordering ทั้งหมด (โค้ดเดิม)
+app.get('/ordering', (req, res) => {
+    const sql = `
+        SELECT
+            BookTime,
+            ArrivalTime,
+            foodname,
+            user_name,
+            status,
+            user_phone,
+            customerName,
+            employeeName
+        FROM
+            ordering;
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error querying ordering data:', err);
+            res.status(500).json({ error: 'Failed to fetch ordering data' });
+            return;
+        }
+        res.json(results);
+    });
+});
+
+// Endpoint สำหรับเมนูที่ขายดีที่สุดตามประเภท (ประจำวัน)
+app.get('/top-foods-by-category/daily', (req, res) => {
+    const date = req.query.date || 'CURDATE()';
+    const sql = `
+        SELECT
+            foodname,
+            ArrivalTime
+        FROM
+            ordering
+        WHERE
+            DATE(ArrivalTime) = ${db.escape(date)}
+            AND ArrivalTime >= '2025-02-01';
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error querying daily orders:', err);
+            res.status(500).json({ error: 'Failed to fetch daily orders' });
+            return;
+        }
+
+        console.log('Daily orders:', results);
+        const categorizedSales = processSalesByCategory(results);
+        console.log('Daily categorized sales:', categorizedSales);
+        const limit = categorizedSales.length >= 10 ? 10 : Math.max(5, categorizedSales.length);
+        const topSales = categorizedSales.slice(0, limit);
+        res.json(topSales);
+    });
+});
+
+// Endpoint สำหรับเมนูที่ขายดีที่สุดตามประเภท (ประจำเดือน)
+app.get('/top-foods-by-category/monthly', (req, res) => {
+    const date = req.query.date || 'CURDATE()';
+    const sql = `
+        SELECT
+            foodname,
+            ArrivalTime
+        FROM
+            ordering
+        WHERE
+            MONTH(ArrivalTime) = MONTH(${db.escape(date)})
+            AND YEAR(ArrivalTime) = YEAR(${db.escape(date)})
+            AND ArrivalTime >= '2025-02-01';
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error querying monthly orders:', err);
+            res.status(500).json({ error: 'Failed to fetch monthly orders' });
+            return;
+        }
+
+        console.log('Monthly orders:', results);
+        const categorizedSales = processSalesByCategory(results);
+        console.log('Monthly categorized sales:', categorizedSales);
+        const limit = categorizedSales.length >= 10 ? 10 : Math.max(5, categorizedSales.length);
+        const topSales = categorizedSales.slice(0, limit);
+        res.json(topSales);
+    });
+});
+
+// ฟังก์ชันช่วยแยกประเภทและคำนวณยอดขาย
+function processSalesByCategory(orders) {
+    const sales = {};
+
+    orders.forEach(order => {
+        if (!order.foodname || typeof order.foodname !== 'string') {
+            console.warn(`Invalid foodname in order: ${JSON.stringify(order)}`);
+            return;
+        }
+
+        const foodItems = order.foodname.split(', ').filter(item => item.trim() !== '');
+        foodItems.forEach(item => {
+            const parts = item.split(' x ');
+            if (parts.length < 2) {
+                console.warn(`Invalid format in foodname item: ${item}`);
+                return;
+            }
+
+            let foodName = parts[0].trim();
+            const quantityPart = parts[1].split(' - ')[0].trim();
+            const quantity = parseInt(quantityPart, 10);
+
+            if (isNaN(quantity) || quantity <= 0) {
+                console.warn(`Invalid quantity in foodname item: ${item}`);
+                return;
+            }
+
+            const thaiNameMatch = foodName.match(/\(([^)]+)\)/g);
+            let thaiName = foodName;
+            if (thaiNameMatch) {
+                for (let match of thaiNameMatch) {
+                    const content = match.slice(1, -1);
+                    if (/[\u0E00-\u0E7F]/.test(content)) {
+                        thaiName = content;
+                        break;
+                    }
+                }
+            } else if (/[\u0E00-\u0E7F]/.test(foodName)) {
+                thaiName = foodName;
+            } else {
+                console.warn(`No Thai name found in foodname item: ${item}`);
+                return;
+            }
+
+            let category = 'food';
+            const lowerThaiName = thaiName.toLowerCase();
+
+            if (
+                lowerThaiName.includes('กาแฟ') ||
+                lowerThaiName.includes('ชา') ||
+                lowerThaiName.includes('น้ำ') ||
+                lowerThaiName.includes('น้ำผลไม้') ||
+                lowerThaiName.includes('น้ำส้ม') ||
+                lowerThaiName.includes('โซดา') ||
+                lowerThaiName.includes('นม')
+            ) {
+                category = 'drink';
+            } else if (
+                lowerThaiName.includes('เค้ก') ||
+                lowerThaiName.includes('ของหวาน') ||
+                lowerThaiName.includes('ไอศกรีม') ||
+                lowerThaiName.includes('คุกกี้') ||
+                lowerThaiName.includes('ช็อกโกแลต') ||
+                lowerThaiName.includes('เค้กช็อกโกแลต')
+            ) {
+                category = 'dessert';
+            }
+
+            if (!sales[thaiName]) {
+                sales[thaiName] = { food_name: thaiName, total_quantity: 0, category };
+            }
+            sales[thaiName].total_quantity += quantity;
+        });
+    });
+
+    // แปลงเป็น array และจัดเรียงตามประเภท (food -> dessert -> drink) และจำนวนที่ขายได้
+    const salesArray = Object.values(sales);
+
+    // จัดเรียงตามประเภทและจำนวนที่ขายได้
+    salesArray.sort((a, b) => {
+        const categoryOrder = { 'food': 1, 'dessert': 2, 'drink': 3 };
+        // จัดเรียงตามประเภทก่อน
+        const categoryComparison = categoryOrder[a.category] - categoryOrder[b.category];
+        if (categoryComparison !== 0) {
+            return categoryComparison;
+        }
+        // ถ้าประเภทเดียวกัน จัดเรียงตามจำนวนที่ขายได้ (มากไปน้อย)
+        return b.total_quantity - a.total_quantity;
+    });
+
+    return salesArray;
+}

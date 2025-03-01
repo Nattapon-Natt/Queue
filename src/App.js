@@ -20,6 +20,7 @@ import Queue from './components/Sidebar/Queue';
 import Info from './components/Sidebar/Info';
 import EmpInfo from './components/Sidebar/EmpInfo';
 import TableBooking from './components/Sidebar/TableBooking';
+import Report from './components/Sidebar/Report';
 
 function App() {
   const [userName, setUserName] = useState(localStorage.getItem('name') || '');
@@ -59,6 +60,7 @@ function App() {
         <Route path="/queue" element={<Queue />} />
         <Route path="/editcus" element={<CusInfo />} />
         <Route path="/editemp" element={<EmpInfo />} />
+        <Route path="/report" element={<Report />} />
         <Route path="/table-booking" element={<TableBooking />} />
       </Routes>
 
