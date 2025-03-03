@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import '../CSS/LoginForm.css';
+import '../CSS/Login.css';
 
 export default function LoginEmp({ setUserName, setMemberType }) {
     const [values, setValues] = useState({ email: "", password: "" });
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
-
     const handleInput = (event) => {
         const { name, value } = event.target;
         setValues(prev => ({ ...prev, [name]: value }));
@@ -39,11 +38,8 @@ export default function LoginEmp({ setUserName, setMemberType }) {
                 localStorage.setItem('birthdate', birthdate);
                 localStorage.setItem('memberType', memberType);
 
-                // เรียกใช้งานฟังก์ชันที่ส่งมาเพื่อตั้งค่า
                 setUserName(name);
                 setMemberType(memberType);
-
-                // นำทางไปยังหน้า PersonalInfo
                 navigate("/info");
             } else {
                 alert("ไม่มีข้อมูล");
@@ -56,49 +52,6 @@ export default function LoginEmp({ setUserName, setMemberType }) {
 
     };
 
-    // return (
-    //     <div className="body">
-    //         <div className="container">
-    //             <main className="register-page">
-    //                 <div className="text-center">
-    //                     <h3 style={{ fontWeight: 'bold' }}>เข้าสู่ระบบสำหรับพนักงาน</h3>
-    //                 </div>
-    //                 <div className="row justify-content-center">
-    //                     <div className="col-lg-6">
-    //                         <div className="register-box">
-    //                             <form id="f-admin" className="needs-validation" onSubmit={handleSubmit} style={{ padding: '5px 30px' }}>
-    //                                 <div className="row g-3 step1 active">
-    //                                     <div className="col-12">
-    //                                         <h5 style={{ marginBottom: '30px' }} className="phone-des">กรุณากรอกรายละเอียดเพื่อทำการเข้าสู่ระบบ</h5>
-    //                                         <InputField
-    //                                             type="email"
-    //                                             name="email"
-    //                                             placeholder="youremail@gmail.com"
-    //                                             value={values.email}
-    //                                             onChange={handleInput}
-    //                                             error={errors.email}
-    //                                         />
-    //                                         <InputField
-    //                                             type="password"
-    //                                             name="password"
-    //                                             placeholder="your password"
-    //                                             value={values.password}
-    //                                             onChange={handleInput}
-    //                                             error={errors.password}
-    //                                         />
-    //                                     </div>
-    //                                     <div className="col-12 center-button">
-    //                                         <button className="btn next btn-lg">Login</button>
-    //                                     </div>
-    //                                 </div>
-    //                             </form>
-    //                         </div>
-    //                     </div>
-    //                 </div>
-    //             </main>
-    //         </div>
-    //     </div>
-    // );
     return (
         <div className="body">
             <div className="container">
@@ -121,7 +74,7 @@ export default function LoginEmp({ setUserName, setMemberType }) {
                                                     name='email'
                                                     className="form-control form-outline-idol"
                                                     id="email"
-                                                    placeholder="youremail@gmail.com"
+                                                    placeholder="your_email@gmail.com"
                                                     required
                                                 />
                                             </div>
@@ -147,8 +100,8 @@ export default function LoginEmp({ setUserName, setMemberType }) {
                                             </div>
                                         </div>
 
-                                        <div className="col-12 center-button">
-                                            <button className="btn next btn-lg">
+                                        <div>
+                                            <button className="next">
                                                 Login
                                             </button>
                                         </div>

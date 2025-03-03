@@ -1,13 +1,11 @@
 import React from 'react';
 import '../components/CSS/bg.css';
-import Login from '../components/Regis-Login/Login';
+import LoginCus from '../components/Regis-Login/LoginCus';
 
 const LoginPage = () => {
   return (
     <div className="body">
-      <div className="">
-        <Login />
-      </div>
+      <LoginCus />
     </div>
   );
 };

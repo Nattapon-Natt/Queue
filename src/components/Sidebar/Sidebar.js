@@ -4,7 +4,6 @@ import '../CSS/Sidebar.css';
 
 function Sidebar() {
     return (
-        // <div className="container">
             <div className="sidebar">
                 <ul>
                     <li>
@@ -30,7 +29,6 @@ function Sidebar() {
                     </li>
                 </ul>
             </div>
-        // </div>
     );
 }
 

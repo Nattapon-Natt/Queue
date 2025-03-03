@@ -5,7 +5,7 @@ function MenuItem({ item: { id, image, foodname, price }, onViewDetail }) {
     return (
         <div 
             className="item" 
-            onClick={() => onViewDetail(id)} // ส่ง id ไปยัง onViewDetail
+            onClick={() => onViewDetail(id)} 
             role="button" 
             tabIndex="0" 
             aria-label={`View details of ${foodname || 'this menu item'}`}
@@ -25,6 +25,5 @@ function MenuItem({ item: { id, image, foodname, price }, onViewDetail }) {
         </div>
     );
 }
-
 
 export default MenuItem;

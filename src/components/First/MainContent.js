@@ -8,12 +8,7 @@ const MainContent = () => {
         <div className="main-content">
             {/* รูปภาพขนาดใหญ่ด้านบน */}
             <Link to="/menu">
-            {/* <img className="icon" src="/assets/pic/user_icon.png" alt="User Icon" /> */}
-                <img
-                    src="/assets/pic/icon/image.png"
-                    alt="Main Dish"
-                    className="main-image"
-                />
+                <img src="/assets/pic/icon/image.png" alt="Main Dish" className="main-image"/>
             </Link>
 
             {/* ข้อความและแกลเลอรี่ในแนวนอน */}

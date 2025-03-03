@@ -1,32 +1,31 @@
-/* Container for the menu item */
 .Menu {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* ปรับให้เนื้อหาอยู่ทางด้านบน */
-  margin: 20px 0;
-  flex-wrap: wrap; /* ให้เนื้อหาหมุนได้ในกรณีที่หน้าจอแคบ */
+  align-items: flex-start;
+  margin: 120px 0;
+  flex-wrap: wrap;
+  font-family: 'kanit';
 }
 
-/* Styling for the image */
 .Menu .col-lg-6 {
-  flex: 0 0 48%; /* กำหนดความกว้างของรูปภาพเป็น 48% */
-  max-width: 48%; /* ให้รูปไม่เกิน 48% */
+  flex: 0 0 48%;
+  max-width: 48%;
   display: flex;
   justify-content: center;
-  margin-bottom: 20px; /* ให้มีระยะห่างด้านล่าง */
+  margin-bottom: 20px;
 }
 
 .profile-menu-box {
-  height: 0;
-  /* padding-top: calc(300 / 700 * 100%); */
-  padding-top: calc(150 / 300 * 100%);
-
+  height: 300px; 
+  width: 300px;  
   background: white;
   position: relative;
   margin: 0 5px;
   display: flex;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 50%; /* ทำให้กล่องเป็นวงกลม */
+  overflow: hidden; /* ตัดส่วนที่เกินออก */
 }
 
 .profile-menu-box:hover {
@@ -39,16 +38,17 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: auto;
-  height: 100%;
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
   transition: all 0.5s ease-in-out;
+  border-radius: 50%; 
 }
 
-/* Styling for the menu detail */
 .menu-detail {
   flex: 1;
   padding-left: 20px;
-  margin-bottom: 20px; /* ให้มีระยะห่างด้านล่าง */
+  margin-bottom: 20px; 
   text-align: left;
   width: 100%;
 }
@@ -70,12 +70,6 @@
   line-height: 1.5;
 }
 
-/* สำหรับกรณีที่ไม่มีข้อมูลรูปภาพ */
-/* img[onerror] {
-  width: 100%;
-  height: auto;
-} */
-
 /* Back to Home Button */
 .back-menu {
   width: 100%;
@@ -91,6 +85,7 @@
   padding: 10px 20px;
   border-radius: 15px;
   border: 2px #f88f5b solid;
+  font-family: 'kanit';
 }
 
 .back-menu:hover {

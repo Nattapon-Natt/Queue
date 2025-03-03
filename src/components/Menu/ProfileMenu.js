@@ -4,10 +4,9 @@ import axios from "axios";
 import '../CSS/ProfileMenu.css';
 
 function ProfileMenu() {
-    const { id } = useParams(); // ดึง id จาก URL
-    const [menuItem, setMenuItem] = useState(null); // เก็บข้อมูลเมนู
+    const { id } = useParams();
+    const [menuItem, setMenuItem] = useState(null);
 
-    // ฟังก์ชันดึงข้อมูลเมนูจาก API
     useEffect(() => {
         const fetchMenuItem = async () => {
             try {
@@ -16,7 +15,7 @@ function ProfileMenu() {
                 }
 
                 const response = await axios.get(`http://localhost:8081/menu?id=${id}`);
-                console.log("API Response:", response.data); // ตรวจสอบค่าที่ได้รับจาก API
+                console.log("API Response:", response.data); 
 
                 if (response.status === 200 && response.data) {
                     setMenuItem(response.data);
@@ -25,11 +24,9 @@ function ProfileMenu() {
                 }
             } catch (error) {
                 console.error("Error fetching menu item:", error);
-                setMenuItem(null); // ถ้าผิดพลาดก็ให้เป็น null เพื่อไม่ให้แสดงข้อมูล
+                setMenuItem(null);
             }
         };
-
-
 
         fetchMenuItem();
     }, [id]);
@@ -38,7 +35,6 @@ function ProfileMenu() {
         return image ? `http://localhost:8081/uploads/${image}` : "/assets/pic/logo.jpg";
     };
 
-    // ดึงข้อมูลจากเมนู
     const { foodname, price, detail, image } = menuItem || {};
 
     return (
@@ -88,4 +84,3 @@ function ProfileMenu() {
     );
 }
 export default ProfileMenu;
-

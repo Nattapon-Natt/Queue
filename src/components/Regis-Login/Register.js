@@ -52,9 +52,9 @@ const Register = () => {
     return (
         <div>
             <div className="">
-                <main className="register-page">
+                <main className="regis">
                     <h3>Create new Account</h3>
-                    <div className="register-box">
+                    <div className="regis-box">
                         <form onSubmit={handleSubmit}>
                             <h5> กรุณากรอกรายละเอียดเพื่อทำการสมัครสมาชิก</h5>
                             <div className="input-icons">

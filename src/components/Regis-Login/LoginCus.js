@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import '../CSS/Login.css';
+import '../CSS/LoginCus.css';
 
 export default function LoginCus({ setUserName }) {
     const [values, setValues] = useState({ email: "", password: "" });
@@ -30,7 +30,7 @@ export default function LoginCus({ setUserName }) {
             }
         } catch (err) {
             console.error(err);
-            alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ"); // แจ้งเตือนหากเกิดข้อผิดพลาด
+            alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
         }
     };
 
@@ -53,7 +53,7 @@ export default function LoginCus({ setUserName }) {
                                                 name='email'
                                                 className="form-control form-outline-idol"
                                                 id="email"
-                                                placeholder="youremail@gmail.com"
+                                                placeholder="your_email@gmail.com"
                                                 required
                                             />
                                         </div>

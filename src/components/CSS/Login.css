@@ -1,42 +1,22 @@
-/* Style สำหรับฟอร์มล็อกอิน */
-.login-page {
+.register-page {
     padding: 20px;
-    font-family: kanit;
+    font-family: 'kanit';
     border-radius: 5px;
-    margin-bottom: 100px;
+    margin: 0 auto;
 }
 
-.login-page h3 {
-    text-align: center;
-    font-weight: bold;
+.register-box {
+    border-radius: inherit;
+    padding: 20px;
 }
 
-.needs-validation {
-    padding: 5px 30px;
-}
-
-.login-detail {
-    color: #757575;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.login-detail h5 {
-    margin-bottom: 30px;
-}
-
-/* เพิ่มสไตล์อินพุตที่มีไอคอน */
-.inputs {
+.input-icons {
     position: relative;
     display: flex;
     align-items: center;
-    border-radius: 50px;
-    background-color: #f8f8f8;
-    border: 1px solid #ccc;
 }
 
-.icons {
+.icon {
     position: absolute;
     padding: 10px;
     width: 40px;
@@ -45,85 +25,46 @@
     transform: translate(0%, -50%);
 }
 
-.inputs .form-control {
-    flex: 1;
+.form-control {
+    padding-left: 40px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.form-outline-idol {
+    padding-left: 50px;
     border: none;
-    outline: none;
-    border-radius: 50px;
-    padding-left: 55px;
-    font-size: 1rem;
-    border: solid 2px rgb(244, 154, 106);
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+    width: 100%; /* ทำให้ช่องกรอกเต็มความกว้าง */
 }
 
-/* Button Styles */
-.button-group {
+.center-button {
     display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-}
-
-.btn-go-login,
-.btn-go-register {
+    justify-content: center;
+    margin-top: 20px; /* เพิ่มระยะห่างด้านบน */
     width: 48%;
     font-weight: bold;
     text-decoration: none;
 }
 
-.btn-idol-outline {
-    width: 100%;
+/* Media Queries */
+@media (max-width: 768px) {
+    .register-page {
+        margin-top: 50px;
+    }
+
+    .register-box {
+        padding: 15px;
+    }
 }
 
-/* ปรับ CSS สำหรับปุ่ม login */
-.btn-go-login {
-    background: linear-gradient(130deg, rgba(242, 112, 114, 1) 0%, rgba(248, 158, 90, 1) 100%);
-    color: #fff;
-    border-radius: 5px;
-    border: none;
-    padding: 10px 20px;
-}
+@media (max-width: 576px) {
+    .register-page {
+        margin-top: 20px;
+    }
 
-.btn-go-login:hover {
-    color: #fff;
-    background: linear-gradient(90deg, rgba(248, 47, 49, 1) 0%, rgba(254, 160, 64, 1) 200%);
-}
-
-.btn-go-login-outline {
-    border-radius: 35px;
-    padding: 6px 25px;
-    color: #fff;
-    background: linear-gradient(130deg, rgba(242, 112, 114, 1) 0%, rgba(248, 158, 90, 1) 100%);
-    line-height: 200%;
-    border: none;
-}
-
-/* ปรับ CSS สำหรับปุ่ม register */
-.btn-go-register {
-    background: linear-gradient(130deg, rgba(242, 112, 114, 1) 0%, rgba(248, 158, 90, 1) 100%);
-    color: #fff;
-    border-radius: 5px;
-    border: none;
-    padding: 10px 20px;
-}
-
-.btn-go-register:hover {
-    color: #fff;
-    background: linear-gradient(90deg, rgba(248, 47, 49, 1) 0%, rgba(254, 160, 64, 1) 200%);
-}
-
-.btn-go-register-outline {
-    border-radius: 35px;
-    padding: 6px 25px;
-    color: #fff;
-    background: linear-gradient(130deg, rgba(242, 112, 114, 1) 0%, rgba(248, 158, 90, 1) 100%);
-    line-height: 200%;
-    border: none;
-}
-
-/* ข้อความข้อผิดพลาด */
-.error-message {
-    color: red;
-    font-size: 14px;
-    margin-bottom: 10px;
+    .register-box {
+        padding: 10px;
+    }
 }
