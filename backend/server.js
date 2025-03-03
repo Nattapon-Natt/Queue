@@ -538,47 +538,27 @@ app.post('/queue', async (req, res) => {
 });
 
 // เพิ่มรายการจอง
-app.post('/ordering', async (req, res) => {
-    console.log('Received order data:', req.body);
-    const { orders } = req.body;
-    if (!orders || !Array.isArray(orders) || orders.length === 0) {
-        return res.status(400).json({ error: 'Invalid order data format.' });
-    }
+app.post('/ordering', (req, res) => {
+    const orders = req.body.orders;
+    const query = 'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName, status) VALUES ?';
+    const values = orders.map(order => [
+        order.user_name,
+        order.foodname,
+        order.BookTime,
+        order.ArrivalTime,
+        order.user_phone,
+        order.customerName,
+        order.employeeName,
+        order.status 
+    ]);
 
-    try {
-        for (const order of orders) {
-            console.log('Processing order:', order);
-            try {
-                const { user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName } = order;
-                if (!user_name || !BookTime || !ArrivalTime) {
-                    return res.status(400).json({ error: 'Missing required fields in an order.' });
-                }
-                await new Promise((resolve, reject) => {
-                    db.query(
-                        'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                        [user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName],
-                        (error, results) => {
-                            if (error) {
-                                console.error('Error inserting ordering data:', error);
-                                reject(error);
-                            } else {
-                                console.log('Ordering data inserted successfully:', results);
-                                resolve(results);
-                            }
-                        }
-                    );
-                }).catch(error => {
-                    console.error('SQL Error:', error)
-                })
-            } catch (error) {
-                console.error('Error processing order:', error);
-            }
+    db.query(query, [values], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to save order' });
         }
-        res.status(201).json({ message: 'All ordering data inserted successfully!' });
-    } catch (error) {
-        console.error('Error inserting ordering data:', error);
-        res.status(500).json({ error: 'Failed to insert ordering data' });
-    }
+        res.json({ status: 'success', id: result.insertId });
+    });
 });
 
 // ดึงข้อมูลมาแสดงหน้าคิว
@@ -652,6 +632,19 @@ app.put("/ordering/:id", async (req, res) => {
     }
 });
 
+app.put('/ordering/cancel', (req, res) => {
+    const { id } = req.body;
+    const query = 'UPDATE ordering SET status = "cancelled" WHERE id = ?';
+    
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to cancel reservation' });
+        }
+        res.json({ status: 'success' });
+    });
+});
+
 // ลบรายการจอง
 app.delete('/ordering/:id', (req, res) => {
     const { id } = req.params;
@@ -667,6 +660,37 @@ app.delete('/ordering/:id', (req, res) => {
             res.status(200).json({ message: "Ordering deleted successfully." });
         } else {
             res.status(404).json({ message: "Ordering not found." });
+        }
+    });
+});
+
+// Cancel queue
+app.delete('/ordering', (req, res) => {
+    const { id } = req.body;
+    const query = 'DELETE FROM ordering WHERE id = ?';
+    
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to delete reservation' });
+        }
+        res.json({ status: 'success' });
+    });
+});
+
+app.get('/reservation-status', (req, res) => {
+    const { id } = req.query;
+    const query = 'SELECT status FROM ordering WHERE id = ?';
+    
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to fetch status' });
+        }
+        if (results.length > 0) {
+            res.json({ status: results[0].status });
+        } else {
+            res.json({ status: null });
         }
     });
 });

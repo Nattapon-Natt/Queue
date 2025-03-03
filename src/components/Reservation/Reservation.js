@@ -19,8 +19,8 @@ const OrderItem = ({ item, cartItem, menuItems }) => {
             )}
             <span className="additionalDetails">Details: {cartItem.additionalDetails}</span>
         </div>
-    )
-}
+    );
+};
 
 const restaurantConfig = {
     openingTime: '00:00',
@@ -61,7 +61,7 @@ function ReservationForm({
         <div className="first">
             <h2>Reserve</h2>
             <p>Welcome, {loggedInUser === 'Guest' ? 'Guest' : loggedInUser} !</p>
-            {isEmployee && ( // Conditionally render the customer name input
+            {isEmployee && (
                 <>
                     <p>Enter Customer Name:</p>
                     <input
@@ -138,7 +138,7 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
         setReservationDetails(prevDetails => ({
             ...prevDetails,
             phone: localPhone
-        }))
+        }));
         setPhone(localPhone);
         setShowSummary(false);
     };
@@ -178,7 +178,6 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
                         <p>Name : {reservationDetails?.name || 'ไม่มีข้อมูล'}</p>
                         <p>Quantity : {reservationDetails?.numPeople || 'ไม่มีข้อมูล'}</p>
                         <p>Tel : {localPhone}</p>
-                        {/* Conditionally render Email only for non-employees */}
                         {!isEmployee && (
                             <p>Email : {reservationDetails?.email || 'ไม่มีข้อมูล'}</p>
                         )}
@@ -200,18 +199,51 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
     );
 }
 
-function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone }) {
+function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary }) {
     const foodname = JSON.parse(localStorage.getItem('foodname') || '[]');
     const { bookingDate = 'N/A', bookingTime = 'N/A' } = JSON.parse(localStorage.getItem('reservationTime') || '{}');
     const { name = 'N/A', numPeople = 'N/A' } = JSON.parse(localStorage.getItem('reservationDetails') || '{}');
-    const queueNumber = localStorage.getItem('queueNumber') || 'N/A';
+    const reservationId = localStorage.getItem('reservationId') || 'N/A';
+    const [status, setStatus] = useState(null);
+
+    useEffect(() => {
+        const fetchStatus = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/reservation-status`, {
+                    params: { id: reservationId }
+                });
+                console.log("Fetched status:", response.data.status);
+                setStatus(response.data.status);
+
+                // ถ้าสถานะเป็น "cleared" ให้กลับไปหน้า ReservationForm
+                if (response.data.status === 'cleared') {
+                    setShowResult(false);
+                    setShowSummary(false); // เพิ่มเพื่อให้แน่ใจว่าไม่ไปหน้า ReservationSummary
+                    localStorage.removeItem('showResult');
+                    localStorage.removeItem('reservationId');
+                    localStorage.removeItem('reservationTime');
+                    localStorage.removeItem('reservationDetails');
+                    localStorage.removeItem('foodname');
+                }
+            } catch (err) {
+                console.error('Error fetching reservation status:', err);
+                setStatus(null);
+            }
+        };
+        fetchStatus();
+
+        // ตั้ง interval เพื่อเช็คสถานะทุก 5 วินาที
+        const interval = setInterval(fetchStatus, 5000);
+        return () => clearInterval(interval);
+    }, [reservationId, setShowResult, setShowSummary]);
+
+    if (status === 'cleared') {
+        return null; // ไม่แสดง ResultBox ถ้าสถานะเป็น cleared
+    }
 
     return (
         <div className="result-box">
-            <h2>Successfully reserved the queue</h2>
-            <p>Customer Name: {customerName}</p> {/* Conditionally display customer name */}
-            <p>Customer Phone: {customerPhone}</p> {/* Conditionally display customer phone */}
-            <p>Your queue has been entered into the system.</p>
+            <h2>Your queue has been entered into the system.</h2>
             <p>Your Name: {name} ({numPeople}P)</p>
             <p>Your Order:</p>
             <div className="order-container">
@@ -239,10 +271,16 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
                 )}
             </div>
             <p>Booked on: {bookingDate}</p>
-            <p>Your Queue: {queueNumber}</p>
+            <p>Reservation ID: {reservationId}</p>
             <p>Time of arrival: {bookingTime}</p>
             <button className="reserve-btn" onClick={handleBackToHome}>Back</button>
-            <button className="reserve-btn" onClick={handleClearReservation}>Cancel</button>
+            <button
+                className={`reserve-btn ${status === 'booked' ? 'disabled' : ''}`}
+                onClick={handleClearReservation}
+                disabled={status === 'booked'}
+            >
+                Cancel
+            </button>
         </div>
     );
 }
@@ -280,27 +318,27 @@ function Reservation() {
     }, []);
 
     useEffect(() => {
-        const storedEmail = localStorage.getItem('email'); //get employee email
+        const storedEmail = localStorage.getItem('email');
         const storedPassword = localStorage.getItem('password');
 
-        if(storedEmail && storedPassword){
+        if (storedEmail && storedPassword) {
             axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`)
-            .then(response => {
-                if (response.data && response.data.password === storedPassword){
-                    setIsEmployee(true)
-                    setLoggedInUser(localStorage.getItem('name') || 'Guest');
-                    setPhone(localStorage.getItem('phone') || '');
-                }else{
-                    setIsEmployee(false)
-                    setLoggedInUser(localStorage.getItem('name') || 'Guest');
-                    setPhone(localStorage.getItem('phone') || '');
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching employee data:", error);
-            })
-        }else{
-            setIsEmployee(false)
+                .then(response => {
+                    if (response.data && response.data.password === storedPassword) {
+                        setIsEmployee(true);
+                        setLoggedInUser(localStorage.getItem('name') || 'Guest');
+                        setPhone(localStorage.getItem('phone') || '');
+                    } else {
+                        setIsEmployee(false);
+                        setLoggedInUser(localStorage.getItem('name') || 'Guest');
+                        setPhone(localStorage.getItem('phone') || '');
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching employee data:", error);
+                });
+        } else {
+            setIsEmployee(false);
             setLoggedInUser(localStorage.getItem('name') || 'Guest');
             setPhone(localStorage.getItem('phone') || '');
         }
@@ -337,15 +375,40 @@ function Reservation() {
         setBookedSlots(JSON.parse(localStorage.getItem('bookedSlots') || '{}'));
     }, []);
 
-    const handleClearReservation = () => {
-        localStorage.removeItem('showResult');
-        localStorage.removeItem('queueData');
-        localStorage.removeItem('queueNumber');
-        localStorage.removeItem('reservationTime');
-        localStorage.removeItem('reservationDetails');
-        localStorage.removeItem('foodname');
-        setShowResult(false);
-    };
+    const handleClearReservation = useCallback(async () => {
+        const reservationId = localStorage.getItem('reservationId');
+
+        try {
+            await axios.delete('http://localhost:8081/ordering', {
+                data: { id: reservationId }
+            });
+
+            localStorage.removeItem('showResult');
+            localStorage.removeItem('reservationId');
+            localStorage.removeItem('reservationTime');
+            localStorage.removeItem('reservationDetails');
+            localStorage.removeItem('foodname');
+
+            const selectedDateTime = `${selectedDate} ${selectedTime}`;
+            setBookedSlots(prevSlots => {
+                const updatedSlots = { ...prevSlots };
+                if (updatedSlots[selectedDateTime]) {
+                    updatedSlots[selectedDateTime] -= 1;
+                    if (updatedSlots[selectedDateTime] <= 0) {
+                        delete updatedSlots[selectedDateTime];
+                    }
+                }
+                localStorage.setItem('bookedSlots', JSON.stringify(updatedSlots));
+                return updatedSlots;
+            });
+
+            setShowResult(false);
+            setShowSummary(false); // เพิ่มเพื่อให้แน่ใจว่าไม่ไปหน้า ReservationSummary
+        } catch (err) {
+            console.error('Error deleting reservation:', err);
+            setError('Failed to delete reservation');
+        }
+    }, [selectedDate, selectedTime]);
 
     useEffect(() => {
         const today = new Date();
@@ -433,12 +496,14 @@ function Reservation() {
             selectedTime: selectedTime,
             customerName: customerName,
             employeeName: localStorage.getItem('name'),
+            status: ''
         };
 
         try {
-            await axios.post('http://localhost:8081/ordering', { orders: [orderDataForDB] });
+            const response = await axios.post('http://localhost:8081/ordering', { orders: [orderDataForDB] });
+            const reservationId = response.data.id;
 
-            localStorage.setItem('queueNumber', queue);
+            localStorage.setItem('reservationId', reservationId);
             localStorage.setItem('reservationTime', JSON.stringify(formattedTime));
             localStorage.setItem('reservationDetails', JSON.stringify({ ...reservationDetails, selectedTime, numPeople: reservationDetails.numPeople }));
             localStorage.setItem('foodname', JSON.stringify(Object.keys(reservationDetails?.cartItems || {}).length > 0 ? orderDataForDB.foodname.split('\n') : []));
@@ -525,6 +590,8 @@ function Reservation() {
                             customerName={customerName}
                             isEmployee={isEmployee}
                             customerPhone={customerPhone}
+                            setShowResult={setShowResult}
+                            setShowSummary={setShowSummary}
                         />
                     ) : showSummary ? (
                         <ReservationSummary
