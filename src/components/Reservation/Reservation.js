@@ -200,52 +200,66 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
     );
 }
 
-function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails }) {  // Added props
+function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails }) {
     const foodname = JSON.parse(localStorage.getItem('foodname') || '[]');
     const { bookingDate = 'N/A', bookingTime = 'N/A' } = JSON.parse(localStorage.getItem('reservationTime') || '{}');
     const { name = 'N/A', numPeople = 'N/A' } = JSON.parse(localStorage.getItem('reservationDetails') || '{}');
-    const reservationId = localStorage.getItem('reservationId') || 'N/A';
+    const queueNumber = localStorage.getItem('queueNumber') || 'N/A'; // ดึง queueNumber จาก localStorage
     const [status, setStatus] = useState(null);
 
     useEffect(() => {
         const fetchStatus = async () => {
             try {
                 const response = await axios.get(`http://localhost:8081/reservation-status`, {
-                    params: { id: reservationId }
+                    params: { id: localStorage.getItem('reservationId') } // ใช้ localStorage.getItem('reservationId')
                 });
                 console.log("Fetched status:", response.data.status);
                 setStatus(response.data.status);
-    
-                if (response.data.status === 'cleared' || response.data.status === null) { // เพิ่มเงื่อนไข OR (||)
-                    console.log("Status is cleared or null!");
+
+                if (response.data.status === null) {
+                    console.log("Status is null (likely due to being late)!");
+                    alert("You are late for your reservation. (คุณมาช้าเกินเวลาที่กำหนด)");
                     setShowResult(false);
                     setShowSummary(false);
                     localStorage.removeItem('showResult');
                     localStorage.removeItem('reservationId');
+                    localStorage.removeItem('queueNumber'); // ลบ queueNumber ออกจาก localStorage ด้วย
                     localStorage.removeItem('reservationTime');
                     localStorage.removeItem('reservationDetails');
                     localStorage.removeItem('foodname');
-    
+
                     // Reset form values
                     setSelectedDate('');
                     setSelectedTime('');
                     setNumPeople('');
-                    setReservationDetails(null); // Reset reservationDetails
+                    setReservationDetails(null);
+                } else if (response.data.status === 'cleared') {
+                    console.log("Status is cleared (likely due to cancel)!");
+                    setShowResult(false);
+                    setShowSummary(false);
+                    localStorage.removeItem('showResult');
+                    localStorage.removeItem('reservationId');
+                    localStorage.removeItem('queueNumber'); // ลบ queueNumber ออกจาก localStorage ด้วย
+                    localStorage.removeItem('reservationTime');
+                    localStorage.removeItem('reservationDetails');
+                    localStorage.removeItem('foodname');
+
+                    // Reset form values
+                    setSelectedDate('');
+                    setSelectedTime('');
+                    setNumPeople('');
+                    setReservationDetails(null);
                 }
             } catch (err) {
                 console.error('Error fetching reservation status:', err);
-                setStatus(null); // ตั้งค่า status เป็น null เมื่อเกิด error
+                setStatus(null);
             }
         };
         fetchStatus();
-    
+
         const interval = setInterval(fetchStatus, 5000);
         return () => clearInterval(interval);
-    }, [reservationId, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails]);
-
-    if (status === 'cleared') {
-        return null; // Return null to trigger the ReservationForm to render
-    }
+    }, [reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails]);
 
     return (
         <div className="result-box">
@@ -277,7 +291,7 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
                 )}
             </div>
             <p>Booked on: {bookingDate}</p>
-            <p>Reservation ID: {reservationId}</p>
+            <p>Queue Number: {queueNumber}</p> {/* เปลี่ยนตรงนี้ */}
             <p>Time of arrival: {bookingTime}</p>
             <p className="warning-text">Do not arrive more than 10 minutes later than your reserved time.</p>
             <button className="reserve-btn" onClick={handleBackToHome}>Back</button>
@@ -486,21 +500,21 @@ function Reservation() {
 
     const handleConfirm = useCallback(async () => {
         if (!reservationDetails || !isTimeSelected) return;
-
+    
         const selectedDateTime = `${selectedDate} ${selectedTime}`;
         const currentBookedCount = bookedSlots[selectedDateTime] || 0;
-
+    
         if (currentBookedCount >= restaurantConfig.maxTables) {
             setError("เวลานี้มีคนจองเต็มแล้ว กรุณาเลือกเวลาอื่น");
             return;
         }
-
+    
         const queue = parseInt(reservationDetails.numPeople, 10) >= 4 ? `B${queueCounterB}` : `A${queueCounterA}`;
         const formattedTime = {
             bookingTime: format(new Date(`${selectedDate}T${selectedTime}`), 'HH:mm:ss'),
             bookingDate: format(new Date(), 'yyyy-MM-dd')
         };
-
+    
         const orderDataForDB = {
             user_name: reservationDetails?.name,
             foodname: Object.entries(reservationDetails?.cartItems || {})
@@ -524,21 +538,40 @@ function Reservation() {
             status: '',
             numPeople: reservationDetails?.numPeople
         };
-
+    
         try {
             const response = await axios.post('http://localhost:8081/ordering', { orders: [orderDataForDB] });
             const reservationId = response.data.id;
-
+    
+            // สร้างข้อมูลสำหรับส่งไปยัง endpoint /queue
+            const queueData = {
+                queues: [{ // ส่งเป็น array เสมอ ตามที่ endpoint /queue รับ
+                    user_name: reservationDetails?.name,
+                    queue_number: queue, // ใช้ค่า queue ที่สร้างไว้ก่อนหน้า
+                    DateTime: new Date().toISOString().slice(0, 19).replace('T', ' ') // รูปแบบ DateTime ที่ MySQL รองรับ
+                }]
+            };
+    
+            // เรียก API เพื่อเพิ่มข้อมูลลงในตาราง queue
+            try {
+                const queueResponse = await axios.post('http://localhost:8081/queue', queueData);
+                console.log('Queue data inserted successfully:', queueResponse.data);
+            } catch (queueError) {
+                console.error('Error inserting queue data:', queueError);
+                setError('Failed to insert queue data'); // แสดง error ให้ผู้ใช้ทราบ
+            }
+    
             localStorage.setItem('reservationId', reservationId);
+            localStorage.setItem('queueNumber', queue); // เปลี่ยนจาก response.data.queueNumber เป็น queue
             localStorage.setItem('reservationTime', JSON.stringify(formattedTime));
             localStorage.setItem('reservationDetails', JSON.stringify({ ...reservationDetails, selectedTime, numPeople: reservationDetails.numPeople }));
             localStorage.setItem('foodname', JSON.stringify(Object.keys(reservationDetails?.cartItems || {}).length > 0 ? orderDataForDB.foodname.split('\n') : []));
-
+    
             setQueueCounterA(prev => parseInt(reservationDetails.numPeople, 10) < 4 ? prev + 1 : prev);
             setQueueCounterB(prev => parseInt(reservationDetails.numPeople, 10) >= 4 ? prev + 1 : prev);
             setBookedSlots(prevBookedSlots => ({ ...prevBookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
             localStorage.setItem('bookedSlots', JSON.stringify({ ...bookedSlots, [selectedDateTime]: currentBookedCount + 1 }));
-
+    
             setShowSummary(false);
             setShowResult(true);
             localStorage.setItem('showResult', 'true');
