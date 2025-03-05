@@ -32,12 +32,23 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted, onCancel
 
     const formattedFoodname = useMemo(() => {
         if (!order?.reservationDetails?.foodname) return "ไม่มี";
+    
         try {
-            return typeof order?.reservationDetails?.foodname === "string"
-                ? order.reservationDetails.foodname.split('\n').map((item, index) => (
-                    <label key={index}>{item}<br /></label>
-                ))
-                : <label>{order.reservationDetails.foodname}</label>
+            if (typeof order?.reservationDetails?.foodname === "string") {
+                return order.reservationDetails.foodname.split('\n').map((item, index) => {
+                    
+                    const thaiText = item.replace(/[^ก-๙ x 0-9 -]+/g, ''); 
+    
+                    if (thaiText.trim() !== "") {
+                        return <label key={index}>{thaiText.trim()}<br /></label>;
+                    } else {
+                        return null;
+                    }
+                }).filter(Boolean);
+    
+            } else {
+                return <label>{order.reservationDetails.foodname}</label>;
+            }
         } catch (e) {
             return order.reservationDetails.foodname;
         }
@@ -128,7 +139,14 @@ const Queue = () => {
     });
 
     const getFoodName = useCallback(
-        (itemId) => menuItems.find((item) => item.id === parseInt(itemId, 10))?.foodname || "Unknown",
+        (itemId) => {
+            const item = menuItems.find((item) => item.id === parseInt(itemId, 10));
+            if (!item) return "Unknown";
+
+            // Regular expression to check if the foodname contains Thai characters
+            const hasThai = /[\u0E00-\u0E7F]/.test(item.foodname);
+            return hasThai ? item.foodname : "Unknown";
+        },
         [menuItems]
     );
 
