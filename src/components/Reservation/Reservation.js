@@ -43,6 +43,7 @@ function ReservationForm({
     selectedDate,
     setSelectedDate,
     selectedTime,
+    setSelectedTime, // Make sure this is included
     handleTimeChange,
     handleReserveOnly,
     handleReserveAndOrder,
@@ -199,7 +200,7 @@ function ReservationSummary({ reservationDetails, menuItems, setShowSummary, han
     );
 }
 
-function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary }) {
+function ResultBox({ reservationDetails, handleBackToHome, handleClearReservation, menuItems, customerName, isEmployee, customerPhone, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails }) {  // Added props
     const foodname = JSON.parse(localStorage.getItem('foodname') || '[]');
     const { bookingDate = 'N/A', bookingTime = 'N/A' } = JSON.parse(localStorage.getItem('reservationTime') || '{}');
     const { name = 'N/A', numPeople = 'N/A' } = JSON.parse(localStorage.getItem('reservationDetails') || '{}');
@@ -214,31 +215,36 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
                 });
                 console.log("Fetched status:", response.data.status);
                 setStatus(response.data.status);
-
-                // ถ้าสถานะเป็น "cleared" ให้กลับไปหน้า ReservationForm
-                if (response.data.status === 'cleared') {
+    
+                if (response.data.status === 'cleared' || response.data.status === null) { // เพิ่มเงื่อนไข OR (||)
+                    console.log("Status is cleared or null!");
                     setShowResult(false);
-                    setShowSummary(false); // เพิ่มเพื่อให้แน่ใจว่าไม่ไปหน้า ReservationSummary
+                    setShowSummary(false);
                     localStorage.removeItem('showResult');
                     localStorage.removeItem('reservationId');
                     localStorage.removeItem('reservationTime');
                     localStorage.removeItem('reservationDetails');
                     localStorage.removeItem('foodname');
+    
+                    // Reset form values
+                    setSelectedDate('');
+                    setSelectedTime('');
+                    setNumPeople('');
+                    setReservationDetails(null); // Reset reservationDetails
                 }
             } catch (err) {
                 console.error('Error fetching reservation status:', err);
-                setStatus(null);
+                setStatus(null); // ตั้งค่า status เป็น null เมื่อเกิด error
             }
         };
         fetchStatus();
-
-        // ตั้ง interval เพื่อเช็คสถานะทุก 5 วินาที
+    
         const interval = setInterval(fetchStatus, 5000);
         return () => clearInterval(interval);
-    }, [reservationId, setShowResult, setShowSummary]);
+    }, [reservationId, setShowResult, setShowSummary, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails]);
 
     if (status === 'cleared') {
-        return null; // ไม่แสดง ResultBox ถ้าสถานะเป็น cleared
+        return null; // Return null to trigger the ReservationForm to render
     }
 
     return (
@@ -273,6 +279,7 @@ function ResultBox({ reservationDetails, handleBackToHome, handleClearReservatio
             <p>Booked on: {bookingDate}</p>
             <p>Reservation ID: {reservationId}</p>
             <p>Time of arrival: {bookingTime}</p>
+            <p className="warning-text">Do not arrive more than 10 minutes later than your reserved time.</p>
             <button className="reserve-btn" onClick={handleBackToHome}>Back</button>
             <button
                 className={`reserve-btn ${status === 'booked' ? 'disabled' : ''}`}
@@ -344,10 +351,21 @@ function Reservation() {
         }
         fetchMenuItems();
 
-        const storedShowResult = localStorage.getItem('showResult') === 'true';
-        if (storedShowResult) {
+        // Get data from localStorage
+        const reservationId = localStorage.getItem('reservationId');
+        const userEmail = localStorage.getItem('email');
+        let reservationDetails = localStorage.getItem('reservationDetails');
+
+        // Parse reservationDetails if it exists
+        if (reservationDetails) {
+            reservationDetails = JSON.parse(reservationDetails);
+        }
+
+        // Check if there's a reservation AND user is logged in AND email matches
+        if (reservationId && userEmail && reservationDetails && reservationDetails.email === userEmail) {
             setShowResult(true);
-            return;
+        } else {
+            setShowResult(false);
         }
 
         if (location.state?.orderDetails) {
@@ -403,12 +421,19 @@ function Reservation() {
             });
 
             setShowResult(false);
-            setShowSummary(false); // เพิ่มเพื่อให้แน่ใจว่าไม่ไปหน้า ReservationSummary
+            setShowSummary(false);
+
+            // Reset form values
+            setSelectedDate('');
+            setSelectedTime('');
+            setNumPeople('');
+            setReservationDetails(null);
+
         } catch (err) {
             console.error('Error deleting reservation:', err);
             setError('Failed to delete reservation');
         }
-    }, [selectedDate, selectedTime]);
+    }, [selectedDate, selectedTime, setSelectedDate, setSelectedTime, setNumPeople, setReservationDetails]);
 
     useEffect(() => {
         const today = new Date();
@@ -437,7 +462,7 @@ function Reservation() {
             cartItems: {},
             selectedDate: selectedDate,
             selectedTime: selectedTime,
-            customerName: customerName,
+            customerName: isEmployee ? customerName : null,
             customerPhone: customerPhone,
         };
 
@@ -494,9 +519,10 @@ function Reservation() {
             ArrivalTime: format(new Date(selectedDateTime), 'yyyy-MM-dd HH:mm'),
             user_phone: isEmployee ? customerPhone : reservationDetails.phone,
             selectedTime: selectedTime,
-            customerName: customerName,
-            employeeName: localStorage.getItem('name'),
-            status: ''
+            customerName: isEmployee ? customerName : null,
+            employeeName: isEmployee ? localStorage.getItem('name') : null,
+            status: '',
+            numPeople: reservationDetails?.numPeople
         };
 
         try {
@@ -581,7 +607,7 @@ function Reservation() {
                 <h1>MAKE A RESERVATION</h1>
                 <div className="reservation-box">
                     {error && <div className="error">Error: {error}</div>}
-                    {showResult ? (
+                    {showResult && localStorage.getItem('reservationId') && localStorage.getItem('name') && localStorage.getItem('email') == localStorage.getItem('email') ? (
                         <ResultBox
                             reservationDetails={reservationDetails}
                             menuItems={menuItems}
@@ -592,6 +618,10 @@ function Reservation() {
                             customerPhone={customerPhone}
                             setShowResult={setShowResult}
                             setShowSummary={setShowSummary}
+                            setSelectedDate={setSelectedDate}  // Pass down the setter function
+                            setSelectedTime={setSelectedTime}  // Pass down the setter function
+                            setNumPeople={setNumPeople} // Pass down the setter function
+                            setReservationDetails={setReservationDetails}
                         />
                     ) : showSummary ? (
                         <ReservationSummary
@@ -613,6 +643,7 @@ function Reservation() {
                             selectedDate={selectedDate}
                             setSelectedDate={setSelectedDate}
                             selectedTime={selectedTime}
+                            setSelectedTime={setSelectedTime} // Pass down the setter function
                             handleTimeChange={handleTimeChange}
                             handleReserveOnly={() => handleReservation(false)}
                             handleReserveAndOrder={() => handleReservation(true)}

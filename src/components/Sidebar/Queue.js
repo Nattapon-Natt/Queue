@@ -59,16 +59,13 @@ const QueueItem = ({ order, getFoodName, onAccept, onClear, isAccepted, onCancel
         }
     }, [order?.reservationDetails?.ArrivalTime]);
 
-    // Ensure numPeople is properly extracted and displayed
-    const numPeople = order?.reservationDetails?.numPeople || "ไม่ระบุ";
-
     return (
         <div className="queue-item">
             <div className="queue-info">
                 <span className="queue-name">
                     👤   {order.customerName
                         ? `${order.customerName} ${order.employeeName ? `(จองโดย : ${order.reservationDetails?.name})` : ''}`
-                        : order.reservationDetails?.name} ({numPeople} คน)
+                        : order.reservationDetails?.name} ({order.reservationDetails?.numPeople} คน)
                 </span>
                 <label>🍽️ รายการอาหาร : </label>
                 {formattedFoodname}

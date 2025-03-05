@@ -12,6 +12,28 @@ export default function LoginCus({ setUserName }) {
         setValues(prev => ({ ...prev, [event.target.name]: event.target.value }));
     };
 
+    // const handleSubmit = async (event) => {
+    //     event.preventDefault();
+
+    //     try {
+    //         const res = await axios.post('http://localhost:8081/login', values);
+    //         if (res.data.status === "Success") {
+    //             // เก็บชื่อผู้ใช้และประเภทสมาชิกใน localStorage
+    //             localStorage.setItem('name', res.data.name);
+    //             localStorage.setItem('email', res.data.email);
+    //             localStorage.setItem('phone', res.data.phone);
+    //             localStorage.setItem('memberType', res.data.memberType); // เก็บ memberType หากมี
+    //             setUserName(res.data.name); // อัปเดตชื่อผู้ใช้ที่นี่
+    //             navigate("/"); // ไปยังหน้าหลัก
+    //         } else {
+    //             alert("ไม่มีข้อมูล"); // แจ้งเตือนเมื่อไม่มีข้อมูลตรงกัน
+    //         }
+    //     } catch (err) {
+    //         console.error(err);
+    //         alert("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+    //     }
+    // };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -24,6 +46,29 @@ export default function LoginCus({ setUserName }) {
                 localStorage.setItem('phone', res.data.phone);
                 localStorage.setItem('memberType', res.data.memberType); // เก็บ memberType หากมี
                 setUserName(res.data.name); // อัปเดตชื่อผู้ใช้ที่นี่
+
+                // Compare current email with previous email
+                const previousEmail = localStorage.getItem('previousEmail');
+                const currentEmail = res.data.email;
+
+                // if (previousEmail && previousEmail !== currentEmail) {
+                //     // Clear previous reservation data on login only if email has changed
+                //     localStorage.removeItem('reservationId');
+                //     localStorage.removeItem('reservationTime');
+                //     localStorage.removeItem('reservationDetails');
+                //     localStorage.removeItem('foodname');
+                //     localStorage.removeItem('showResult');
+                // }
+
+                if (previousEmail && previousEmail !== currentEmail) {
+                    // ล้างข้อมูลทั้งหมดที่เกี่ยวข้องกับการจอง เมื่ออีเมลเปลี่ยน
+                    ['reservationId', 'reservationTime', 'reservationDetails', 'foodname', 'showResult', 'bookedSlots'].forEach(item => localStorage.removeItem(item));
+                }
+
+
+                // Update previousEmail for next login
+                localStorage.setItem('previousEmail', currentEmail);
+
                 navigate("/"); // ไปยังหน้าหลัก
             } else {
                 alert("ไม่มีข้อมูล"); // แจ้งเตือนเมื่อไม่มีข้อมูลตรงกัน

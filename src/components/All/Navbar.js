@@ -4,11 +4,10 @@ import '../CSS/Navbar.css';
 
 function Navbar({ userName, setUserName }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [isMasuLogin, setIsMasuLogin] = useState(false); // เช็คว่า login มาจาก LoginMasu หรือไม่
+    const [isMasuLogin, setIsMasuLogin] = useState(false); 
     const navigate = useNavigate();
 
     useEffect(() => {
-        // ดึงค่า memberType จาก localStorage เพื่อตรวจสอบว่าเป็นการ login ผ่าน LoginMasu หรือไม่
         const memberType = localStorage.getItem('memberType');
         if (memberType === 'emp') {
             setIsMasuLogin(true); 
@@ -19,13 +18,24 @@ function Navbar({ userName, setUserName }) {
         setIsOpen(!isOpen);
     };
 
+    // const handleLogout = () => {
+    //     localStorage.removeItem('name');
+    //     localStorage.removeItem('memberType');
+    //     setUserName('');
+    //     navigate('/');
+    //     window.location.reload();
+    //     localStorage.clear();
+    // };
+
     const handleLogout = () => {
         localStorage.removeItem('name');
         localStorage.removeItem('memberType');
+        localStorage.removeItem('email');
+        localStorage.removeItem('password');
+    
         setUserName('');
         navigate('/');
         window.location.reload();
-        localStorage.clear();
     };
 
     return (
@@ -39,7 +49,6 @@ function Navbar({ userName, setUserName }) {
                     <i className={isOpen ? 'fas fa-times' : 'fas fa-bars'}></i>
                 </div>
                 <ul className={isOpen ? 'nav-menu active' : 'nav-menu'}>
-                    {/* ซ่อน HOME, MENU, RESERVE ถ้า login ผ่าน LoginMasu */}
                     {!isMasuLogin && (
                         <>
                             <li className="nav-item">

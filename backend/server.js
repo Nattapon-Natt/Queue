@@ -540,7 +540,7 @@ app.post('/queue', async (req, res) => {
 // เพิ่มรายการจอง
 app.post('/ordering', (req, res) => {
     const orders = req.body.orders;
-    const query = 'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName, status) VALUES ?';
+    const query = 'INSERT INTO ordering (user_name, foodname, BookTime, ArrivalTime, user_phone, customerName, employeeName, status, numPeople) VALUES ?';
     const values = orders.map(order => [
         order.user_name,
         order.foodname,
@@ -549,7 +549,8 @@ app.post('/ordering', (req, res) => {
         order.user_phone,
         order.customerName,
         order.employeeName,
-        order.status 
+        order.status,
+        order.numPeople,
     ]);
 
     db.query(query, [values], (err, result) => {
@@ -585,7 +586,6 @@ app.get('/ordering', (req, res) => {
                 orderDetails = []; // Set default to an empty array
             }
 
-            // Convert orderDetails to the desired structure
             const items = Array.isArray(orderDetails) ? orderDetails.map(item => ({
                 itemId: item.itemId || null, // Use null if no itemId
                 quantity: item.quantity || 0, // Use 0 if no quantity
@@ -593,13 +593,12 @@ app.get('/ordering', (req, res) => {
                 additionalDetails: item.additionalDetails || ""
             })) : [];
 
-            // Returns the new format
             return {
                 id: order.id,
-                queueNumber: order.id, // Use id as queueNumber
+                queueNumber: order.id, 
                 reservationDetails: {
-                    name: order.user_name || "Unknown", // Use "Unknown" if no user_name
-                    numPeople: 1, // default
+                    name: order.user_name || "Unknown",
+                    numPeople: order.numPeople || 0, 
                     foodname: order.foodname || "ไม่ระบุ",
                     ArrivalTime: order.ArrivalTime || "Unknown",
                     user_phone: order.user_phone || "No phone"

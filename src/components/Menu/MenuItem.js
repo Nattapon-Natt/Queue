@@ -19,7 +19,7 @@ function MenuItem({ item: { id, image, foodname, price }, onViewDetail }) {
             <div className="item-info">
                 <h3 className="food-name">{foodname || 'ชื่อเมนูไม่ระบุ'}</h3>
                 <p className="food-price">
-                    ราคา: {price !== undefined ? `${price} บาท` : 'ไม่ระบุราคา'}
+                    Price : {price !== undefined ? `${price} baht` : 'ไม่ระบุราคา'}
                 </p>
             </div>
         </div>

@@ -58,9 +58,9 @@ function ProfileMenu() {
                         </div>
                         <div className="menu-detail">
                             <h1>{foodname || "ไม่พบชื่อเมนู"}</h1>
-                            <label>ราคา :</label>
-                            <p>{price ? `${price} บาท` : "ไม่ระบุราคา"}</p>
-                            <label>รายละเอียดอาหาร  :</label>
+                            <label>Price :</label>
+                            <p>{price ? `${price} baht` : "ไม่ระบุราคา"}</p>
+                            <label>Details  :</label>
                             <p>{detail || "ไม่มีรายละเอียด"}</p>
                         </div>
                     </div>
@@ -75,7 +75,7 @@ function ProfileMenu() {
                     <div className="col-md-4 col-lg-3 text-center">
                         <Link className="back-menu" to="/menu">
                             <img src="/assets/pic/icon/idol-arrow.png" alt="Back to Menu" />
-                            กลับหน้าเมนู
+                            Menu Page
                         </Link>
                     </div>
                 </div>

@@ -3,6 +3,8 @@ import '../CSS/Report.css';
 import Sidebar from './Sidebar';
 import jsPDF from 'jspdf';
 import jspdfAutoTable from 'jspdf-autotable';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Report() {
     const [dailyTopItems, setDailyTopItems] = useState([]);
@@ -12,7 +14,48 @@ function Report() {
     const [error, setError] = useState(null);
     const [kanitBase64, setKanitBase64] = useState(null);
     const [fontLoaded, setFontLoaded] = useState(false);
+    const navigate = useNavigate();
+    const [userData, setUserData] = useState({
+        name: '',
+        lastname: '',
+        position: '',
+        phone: '',
+        birthdate: '',
+        email: '',
+        password: '',
+    });
 
+    useEffect(() => {
+        const storedEmail = localStorage.getItem('email');
+        const storedPassword = localStorage.getItem('password');
+
+        if (!storedEmail || !storedPassword) {
+            navigate('/emp', { replace: true });
+            return;
+        }
+
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8081/profile/emp?email=${storedEmail}`);
+                if (response.data && response.data.password === storedPassword) {
+                    setUserData(response.data);
+                } else {
+                    console.error("Unauthorized access");
+                    localStorage.removeItem('email');
+                    localStorage.removeItem('password');
+                    navigate('/emp', { replace: true });
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                localStorage.removeItem('email');
+                localStorage.removeItem('password');
+                navigate('/emp', { replace: true });
+            }
+        };
+
+        fetchUserData();
+    }, [navigate]);
+    
     // โหลดไฟล์ฟอนต์ .ttf และแปลงเป็น base64
     useEffect(() => {
         fetch('/assets/fonts/Kanit-Regular.ttf')
